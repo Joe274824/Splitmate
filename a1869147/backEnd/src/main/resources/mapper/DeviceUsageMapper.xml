@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.DeviceUsageMapper">
+    <resultMap id="DeviceUsageResultMap" type="SplitMate.domain.DeviceUsage">
+        <id property="id" column="id"/>
+        <result property="user.id" column="user_id"/>
+        <result property="device.id" column="device_id"/>
+        <result property="usageTime" column="usage_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+    </resultMap>
+
+    <select id="getAllDeviceUsages" resultMap="DeviceUsageResultMap">
+        SELECT * FROM device_usage
+    </select>
+
+    <select id="getDeviceUsageById" parameterType="Long" resultMap="DeviceUsageResultMap">
+        SELECT * FROM device_usage WHERE id = #{id}
+    </select>
+
+    <insert id="insertDeviceUsage" parameterType="SplitMate.domain.DeviceUsage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device_usage (user_id, device_id, usage_time, start_time, end_time)
+        VALUES (#{user.id}, #{device.id}, #{usageTime}, #{startTime}, #{endTime})
+    </insert>
+
+    <update id="updateDeviceUsage" parameterType="SplitMate.domain.DeviceUsage">
+        UPDATE device_usage
+        SET user_id = #{user.id}, device_id = #{device.id}, usage_time = #{usageTime}, start_time = #{startTime}, end_time = #{endTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteDeviceUsage" parameterType="Long">
+        DELETE FROM device_usage WHERE id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.DeviceMapper">
+    <resultMap id="DeviceResultMap" type="SplitMate.domain.Device">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="power" column="power"/>
+    </resultMap>
+
+    <select id="getAllDevices" resultMap="DeviceResultMap">
+        SELECT * FROM device
+    </select>
+
+    <select id="getDeviceById" parameterType="Long" resultMap="DeviceResultMap">
+        SELECT * FROM device WHERE id = #{id}
+    </select>
+
+    <insert id="insertDevice" parameterType="SplitMate.domain.Device" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device (name, power)
+        VALUES (#{name}, #{power})
+    </insert>
+
+    <update id="updateDevice" parameterType="SplitMate.domain.Device">
+        UPDATE device
+        SET name = #{name}, power = #{power}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteDevice" parameterType="Long">
+        DELETE FROM device WHERE id = #{id}
+    </delete>
+</mapper>
