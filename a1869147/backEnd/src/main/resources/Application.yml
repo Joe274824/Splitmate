@@ -2,8 +2,8 @@ server:
   port: 8080
 spring:
   datasource:
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
     #    ip地址 数据库名 用户名 密码 需要根据自己的配置填写
-    url: jdbc:mysql://192.168.0.1:3306/splitmate?rewriteBatchedStatements=false
+    url: jdbc:mysql://120.26.0.31:3306/splitmate?rewriteBatchedStatements=false
     username: root
     password: root
