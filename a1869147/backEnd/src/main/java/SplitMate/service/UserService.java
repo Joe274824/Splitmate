@@ -13,6 +13,8 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
@@ -25,6 +27,7 @@ public class UserService {
 
     public void createUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setStatus("active");
         userMapper.insertUser(user);
     }
 
