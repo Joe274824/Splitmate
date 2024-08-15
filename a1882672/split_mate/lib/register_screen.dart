@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -10,49 +8,35 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _nameController = TextEditingController();
-  File? _photo1;
-  File? _photo2;
-  File? _photo3;
-  final picker = ImagePicker();
-
-  Future<void> _pickImage(int photoNumber) async {
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        switch (photoNumber) {
-          case 1:
-            _photo1 = File(pickedFile.path);
-            break;
-          case 2:
-            _photo2 = File(pickedFile.path);
-            break;
-          case 3:
-            _photo3 = File(pickedFile.path);
-            break;
-        }
-      }
-    });
-  }
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
 
   Future<void> _register() async {
-    if (_photo1 == null || _photo2 == null || _photo3 == null) {
-      return;
-    }
+    final requestBody = <String, String>{
+      'username': _usernameController.text,
+      'password': _passwordController.text,
+      'email': _emailController.text,
+    };
 
-    final request = http.MultipartRequest('POST', Uri.parse('http://localhost:3000/register'))
-      ..fields['name'] = _nameController.text
-      ..files.add(await http.MultipartFile.fromPath('photo1', _photo1!.path))
-      ..files.add(await http.MultipartFile.fromPath('photo2', _photo2!.path))
-      ..files.add(await http.MultipartFile.fromPath('photo3', _photo3!.path));
+    print('Sending POST request to http://120.26.0.31:8080/users');
+    print('Request body: ${jsonEncode(requestBody)}');
 
-    final response = await request.send();
+    final response = await http.post(
+      Uri.parse('http://120.26.0.31:8080/users'), // Use the URL provided in the documentation
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(requestBody),
+    );
+    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       print('User registered successfully');
+      // You can navigate to the login screen or another screen after successful registration
     } else {
-      print('Failed to register user');
+      print('Failed to register user. Status: ${response.statusCode}');
+      print('Response body: ${response.body}');
     }
   }
 
@@ -68,25 +52,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             children: [
               TextField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                controller: _usernameController,
+                decoration: InputDecoration(labelText: 'Username'),
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => _pickImage(1),
-                child: Text('Upload Photo 1'),
+              TextField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
               ),
-              if (_photo1 != null) Image.file(_photo1!),
-              ElevatedButton(
-                onPressed: () => _pickImage(2),
-                child: Text('Upload Photo 2'),
+              SizedBox(height: 20),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
               ),
-              if (_photo2 != null) Image.file(_photo2!),
-              ElevatedButton(
-                onPressed: () => _pickImage(3),
-                child: Text('Upload Photo 3'),
-              ),
-              if (_photo3 != null) Image.file(_photo3!),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _register,
