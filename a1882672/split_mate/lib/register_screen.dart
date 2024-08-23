@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'login_screen.dart';  // Import the LoginScreen
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -13,30 +14,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
 
   Future<void> _register() async {
-    final requestBody = <String, String>{
+    final requestBody = jsonEncode({
       'username': _usernameController.text,
       'password': _passwordController.text,
       'email': _emailController.text,
-    };
+    });
 
     print('Sending POST request to http://120.26.0.31:8080/users');
-    print('Request body: ${jsonEncode(requestBody)}');
+    print('Request body: $requestBody');
 
-    final response = await http.post(
-      Uri.parse('http://120.26.0.31:8080/users'), // Use the URL provided in the documentation
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(requestBody),
-    );
-    print('Response body: ${response.body}');
+    try {
+      final response = await http.post(
+        Uri.parse('http://120.26.0.31:8080/users'),
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody,
+      );
 
-    if (response.statusCode == 200) {
-      print('User registered successfully');
-      // You can navigate to the login screen or another screen after successful registration
-    } else {
-      print('Failed to register user. Status: ${response.statusCode}');
+      print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        print('User registered successfully');
+        // Navigate to the login screen after successful registration
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      } else {
+        print('Failed to register user. Status: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed. Please try again.')),
+        );
+      }
+    } catch (error) {
+      print('Error occurred during registration: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again.')),
+      );
     }
   }
 
