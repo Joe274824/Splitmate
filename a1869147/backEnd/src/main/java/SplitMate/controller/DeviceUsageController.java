@@ -3,6 +3,7 @@ package SplitMate.controller;
 import SplitMate.domain.DeviceUsage;
 import SplitMate.service.DeviceUsageService;
 import SplitMate.util.JwtUtil;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,8 @@ public class DeviceUsageController {
     }
 
     @GetMapping("/username")
-    public List<DeviceUsage> getDeviceUsageByUserID(@RequestHeader("Authorization") String token) {
+    public List<DeviceUsage> getDeviceUsageByUserID(@RequestHeader("Authorization")
+                                                         @ApiParam(required = false)String token) {
         String jwtToken = token.substring(7);
 
         // 使用 JwtUtil 解析用户名
