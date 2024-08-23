@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.sql.Timestamp;
 
 @Entity
 public class Bill {
@@ -16,7 +17,16 @@ public class Bill {
     private String fileName;
     private String filePath;
 
-    // Getters and Setters
+    private Timestamp uploadTime;
+
+    public Timestamp getUploadTime() {
+        return uploadTime;
+    }
+
+    public void setUploadTime(Timestamp uploadTime) {
+        this.uploadTime = uploadTime;
+    }
+// Getters and Setters
 
 
     public Long getId() {
