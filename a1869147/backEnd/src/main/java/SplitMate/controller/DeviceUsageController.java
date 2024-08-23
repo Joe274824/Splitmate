@@ -2,6 +2,7 @@ package SplitMate.controller;
 
 import SplitMate.domain.DeviceUsage;
 import SplitMate.service.DeviceUsageService;
+import SplitMate.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +14,9 @@ public class DeviceUsageController {
 
     @Autowired
     private DeviceUsageService deviceUsageService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping
     public List<DeviceUsage> getAllDeviceUsages() {
@@ -27,6 +31,17 @@ public class DeviceUsageController {
     @PostMapping
     public void createDeviceUsage(@RequestBody DeviceUsage deviceUsage) {
         deviceUsageService.createDeviceUsage(deviceUsage);
+    }
+
+    @GetMapping("/username")
+    public List<DeviceUsage> getDeviceUsageByUserID(@RequestHeader("Authorization") String token) {
+        String jwtToken = token.substring(7);
+
+        // 使用 JwtUtil 解析用户名
+        String username = jwtUtil.extractUsername(jwtToken);
+
+        // 使用用户名进行查询
+        return deviceUsageService.getDeviceUsageByUsername(username);
     }
 
     @PutMapping("/{id}")

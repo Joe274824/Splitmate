@@ -37,4 +37,6 @@ public interface DeviceUsageMapper {
      * @param id the ID of the device usage record to be deleted.
      */
     void deleteDeviceUsage(Long id);
+
+    List<DeviceUsage> getDeviceUsageByUsername(String username);
 }

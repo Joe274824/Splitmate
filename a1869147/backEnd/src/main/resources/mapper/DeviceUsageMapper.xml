@@ -11,6 +11,20 @@
         <result property="startTime" column="start_time"/>
         <result property="endTime" column="end_time"/>
     </resultMap>
+    <resultMap id="DeviceResultMap" type="SplitMate.domain.Device">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <resultMap id="DeviceUsageWithDeviceNameResultMap" type="SplitMate.domain.DeviceUsage">
+        <id property="id" column="id"/>
+        <result property="user.id" column="user_id"/>
+        <result property="device.id" column="device_id"/>
+        <result property="usageTime" column="usage_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <association property="device" javaType="SplitMate.domain.Device" resultMap="DeviceResultMap"/>
+    </resultMap>
 
     <select id="getAllDeviceUsages" resultMap="DeviceUsageResultMap">
         SELECT * FROM device_usage
@@ -18,6 +32,10 @@
 
     <select id="getDeviceUsageById" parameterType="Long" resultMap="DeviceUsageResultMap">
         SELECT * FROM device_usage WHERE id = #{id}
+    </select>
+
+    <select id="getDeviceUsageByUsername" parameterType="String" resultMap="DeviceUsageWithDeviceNameResultMap">
+        SELECT ud.* ,d.name FROM user u JOIN device_usage ud ON u.id = ud.user_id JOIN device d ON ud.device_id = d.id WHERE u.username = #{username}
     </select>
 
     <insert id="insertDeviceUsage" parameterType="SplitMate.domain.DeviceUsage" useGeneratedKeys="true" keyProperty="id">

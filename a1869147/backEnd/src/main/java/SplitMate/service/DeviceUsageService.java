@@ -32,4 +32,8 @@ public class DeviceUsageService {
     public void deleteDeviceUsage(Long id) {
         deviceUsageMapper.deleteDeviceUsage(id);
     }
+
+    public List<DeviceUsage> getDeviceUsageByUsername(String username) {
+        return deviceUsageMapper.getDeviceUsageByUsername(username);
+    }
 }

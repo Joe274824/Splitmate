@@ -38,4 +38,8 @@ public class UserService {
     public void deleteUser(Long id) {
         userMapper.deleteUser(id);
     }
+
+    public User getUserByUsername(String username) {
+        return userMapper.findByUsername(username);
+    }
 }

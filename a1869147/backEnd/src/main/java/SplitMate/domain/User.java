@@ -14,6 +14,7 @@ public class User {
     private String password;
     private String status;
     private Timestamp createdAt;
+    private int userType;
 
     // Getters and Setters
 
@@ -64,5 +65,13 @@ public class User {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public int getUserType() {
+        return userType;
+    }
+
+    public void setUserType(int userType) {
+        this.userType = userType;
     }
 }
