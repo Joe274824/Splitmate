@@ -1,30 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'register_screen.dart'; // Import RegisterScreen
-import 'tenant_screen.dart'; // Import the existing TenantScreen class
+import 'register_screen.dart';
+import 'tenant_screen.dart';
+
+
 
 class LoginScreen extends StatelessWidget {
   final _nameController = TextEditingController();
-  final _passwordController = TextEditingController();  // 添加密码输入
+  final _passwordController = TextEditingController();
 
   Future<void> _login(BuildContext context) async {
-    // 拼接请求的URL
-    final url =
-        'http://120.26.0.31:8080/api/login?username=${_nameController.text}&password=${_passwordController.text}';
+    final Map<String, dynamic> requestBody = {
+      'username': _nameController.text,
+      'password': _passwordController.text,
+    };
 
-    // 发送POST请求到服务器
-    final response = await http.post(Uri.parse(url));
+    print("Sending request to server: $requestBody");
 
-    // 打印服务器响应内容以便调试
-    print("Received response: ${response.body}");
+    final response = await http.post(
+      Uri.parse('http://120.26.0.31:8080/api/login'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'accept': '*/*',
+      },
+      body: jsonEncode(requestBody),
+    );
 
-    // 根据响应处理结果
+    print("Server response: ${response.statusCode} - ${response.body}");
+
     if (response.statusCode == 200) {
+      // 将不规范的JSON字符串替换成标准格式
+      final correctedJson = response.body
+          .replaceAllMapped(RegExp(r'(\w+)=([^,}]+)'), (match) {
+        return '"${match.group(1)}":"${match.group(2)}"';
+      });
+
+      print("Corrected response: $correctedJson");
+
+      final responseData = jsonDecode(correctedJson);
+
+      bool isPrincipleTenant = responseData['usertype'] == '1';
+      String token = responseData['token'];
+
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => TenantScreen(isPrincipleTenant: false), // 假设登录用户不是主租户
+          builder: (context) => TenantScreen(
+            isPrincipleTenant: isPrincipleTenant,
+            token: token,
+          ),
         ),
       );
     } else {
@@ -53,19 +78,19 @@ class LoginScreen extends StatelessWidget {
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,  // 隐藏密码输入
+              obscureText: true,
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => _login(context),
               child: Text('Login'),
             ),
-            SizedBox(height: 20), // Space between buttons
+            SizedBox(height: 20),
             TextButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()), // Navigate to RegisterScreen
+                  MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
               child: Text('Register'),
