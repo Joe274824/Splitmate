@@ -1,12 +1,17 @@
 package SplitMate.controller;
 
 import SplitMate.domain.DeviceUsage;
+import SplitMate.domain.User;
 import SplitMate.service.DeviceUsageService;
+import SplitMate.service.UserService;
 import SplitMate.util.JwtUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -15,6 +20,9 @@ public class DeviceUsageController {
 
     @Autowired
     private DeviceUsageService deviceUsageService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -35,15 +43,13 @@ public class DeviceUsageController {
     }
 
     @GetMapping("/username")
-    public List<DeviceUsage> getDeviceUsageByUserID(@RequestHeader("Authorization")
-                                                         @ApiParam(required = false)String token) {
+    public void getDeviceUsageByUserID(@RequestHeader("Authorization")
+                                                         @ApiParam(required = false)String token) throws IOException {
         String jwtToken = token.substring(7);
-
         // 使用 JwtUtil 解析用户名
         String username = jwtUtil.extractUsername(jwtToken);
-
-        // 使用用户名进行查询
-        return deviceUsageService.getDeviceUsageByUsername(username);
+        User user = userService.getUserByUsername(username);
+        WebSocketServer.sendInfo(JSONArray.toJSONString(deviceUsageService.getDeviceUsageByUsername(username)), user.getId());
     }
 
     @PutMapping("/{id}")

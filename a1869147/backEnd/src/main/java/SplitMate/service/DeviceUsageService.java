@@ -36,4 +36,8 @@ public class DeviceUsageService {
     public List<DeviceUsage> getDeviceUsageByUsername(String username) {
         return deviceUsageMapper.getDeviceUsageByUsername(username);
     }
+
+    public List<DeviceUsage> getUpdatedDataSince(Long timestamp) {
+        return deviceUsageMapper.findUpdatedDataSince(timestamp);
+    }
 }

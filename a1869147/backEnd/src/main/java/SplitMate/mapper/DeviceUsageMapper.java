@@ -39,4 +39,6 @@ public interface DeviceUsageMapper {
     void deleteDeviceUsage(Long id);
 
     List<DeviceUsage> getDeviceUsageByUsername(String username);
+
+    List<DeviceUsage> findUpdatedDataSince(Long timestamp);
 }
