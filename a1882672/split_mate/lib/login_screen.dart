@@ -4,8 +4,6 @@ import 'dart:convert';
 import 'register_screen.dart';
 import 'tenant_screen.dart';
 
-
-
 class LoginScreen extends StatelessWidget {
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -30,7 +28,6 @@ class LoginScreen extends StatelessWidget {
     print("Server response: ${response.statusCode} - ${response.body}");
 
     if (response.statusCode == 200) {
-      // 将不规范的JSON字符串替换成标准格式
       final correctedJson = response.body
           .replaceAllMapped(RegExp(r'(\w+)=([^,}]+)'), (match) {
         return '"${match.group(1)}":"${match.group(2)}"';
@@ -65,25 +62,37 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Login'),
+        backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
+            TextFormField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Username'),
+              decoration: InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(),
+              ),
             ),
             SizedBox(height: 20),
-            TextField(
+            TextFormField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(),
+              ),
               obscureText: true,
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => _login(context),
               child: Text('Login'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+              ),
             ),
             SizedBox(height: 20),
             TextButton(

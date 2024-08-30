@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'login_screen.dart';  // Import the LoginScreen
-
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -14,45 +13,93 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _emailController = TextEditingController();
 
-  Future<void> _register() async {
-    // 创建请求体
-    final Map<String, dynamic> requestBody = {
-      'id': 0,  // 根据API要求，id可以设置为0，后端会自动生成
-      'username': _usernameController.text,
-      'password': _passwordController.text,
-      'email': _emailController.text,
-      'status': 'string',  // 假设status为string，具体值需根据业务需求设置
-      'userType': 0,  // 假设0为普通用户
-    };
+  File? _photo1;
+  File? _photo2;
+  File? _photo3;
+  final picker = ImagePicker();
 
-    print("Sending request to server: $requestBody");
-
-    // 发送POST请求到服务器
-    final response = await http.post(
-      Uri.parse('http://120.26.0.31:8080/users/create'),
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-        'accept': '*/*',
+  Future<void> _pickImage(int photoNumber) async {
+    final XFile? pickedFile = await showDialog<XFile>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Choose an option'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.camera_alt),
+                title: Text('Take a photo'),
+                onTap: () async {
+                  final XFile? file = await picker.pickImage(
+                      source: ImageSource.camera, preferredCameraDevice: CameraDevice.front);
+                  Navigator.of(context).pop(file);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library),
+                title: Text('Choose from gallery'),
+                onTap: () async {
+                  final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+                  Navigator.of(context).pop(file);
+                },
+              ),
+            ],
+          ),
+        );
       },
-      body: jsonEncode(requestBody),
     );
 
-    // 打印服务器响应内容以便调试
-    print("Server response: ${response.statusCode} - ${response.body}");
+    if (pickedFile != null) {
+      File imageFile = File(pickedFile.path);
 
-    if (response.statusCode == 201) {
-      print('User registered successfully');
-      // 注册成功后跳转回登录页面
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-      );
-    } else {
-      print('Failed to register user');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('注册失败，请重试')),
-      );
+      // Set the photo immediately below the upload button
+      setState(() {
+        switch (photoNumber) {
+          case 1:
+            _photo1 = imageFile;
+            break;
+          case 2:
+            _photo2 = imageFile;
+            break;
+          case 3:
+            _photo3 = imageFile;
+            break;
+        }
+      });
+
+      bool faceDetected = await _detectFaces(imageFile);
+
+      if (!faceDetected) {
+        _showErrorDialog("No face or multiple faces detected in the image. Please upload a valid photo.");
+      }
     }
+  }
+
+  Future<bool> _detectFaces(File imageFile) async {
+    final inputImage = InputImage.fromFile(imageFile);
+    final faceDetector = FaceDetector(options: FaceDetectorOptions());
+    final List<Face> faces = await faceDetector.processImage(inputImage);
+
+    return faces.length == 1;
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Error"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -82,14 +129,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: InputDecoration(labelText: 'Email'),
               ),
               SizedBox(height: 20),
+              _buildPhotoUploadSection(1, _photo1),
+              SizedBox(height: 20),
+              _buildPhotoUploadSection(2, _photo2),
+              SizedBox(height: 20),
+              _buildPhotoUploadSection(3, _photo3),
+              SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _register,
+                onPressed: () {
+                  // Handle the registration process
+                },
                 child: Text('Register'),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPhotoUploadSection(int photoNumber, File? photoFile) {
+    return Column(
+      children: [
+        ElevatedButton(
+          onPressed: () => _pickImage(photoNumber),
+          child: Text('Upload Photo $photoNumber'),
+        ),
+        if (photoFile != null) Image.file(photoFile),
+      ],
     );
   }
 }

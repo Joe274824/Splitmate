@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import 'tenant_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -10,23 +9,36 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Split Mate',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: LoginScreen(),  // 启动时加载 LoginScreen
+      home: SplashScreen(), // 添加了启动界面
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  final bool isPrincipleTenant;
-  final String token;  // 新增 token 参数
-
-  HomeScreen({required this.isPrincipleTenant, required this.token});  // 修改构造函数
-
+// 启动界面
+class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return TenantScreen(isPrincipleTenant: isPrincipleTenant, token: token);  // 传递 token
+    Future.delayed(Duration(seconds: 2), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    });
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Image.asset(
+          'assets/images/app_icon.png', // 请确保您将图片存放在这个路径
+          width: 100,
+          height: 100,
+        ),
+      ),
+    );
   }
 }

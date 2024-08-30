@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
-import 'models/bill_data.dart';
 import 'monthly_bills_screen.dart';
 import 'download_bill_screen.dart';
 import 'usage_history_screen.dart';
 
 class TenantScreen extends StatelessWidget {
   final bool isPrincipleTenant;
-  final String token;  // 新增：接受 token
+  final String token;
 
   TenantScreen({required this.isPrincipleTenant, required this.token});
 
   @override
   Widget build(BuildContext context) {
+    final buttonStyle = ElevatedButton.styleFrom(
+      backgroundColor: Colors.blueAccent,
+      padding: EdgeInsets.symmetric(vertical: 20),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Tenant Dashboard'),
@@ -20,8 +23,8 @@ class TenantScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,  // 调整为竖向排列
-          crossAxisAlignment: CrossAxisAlignment.stretch, // 使按钮在水平上占满可用空间
+          mainAxisAlignment: MainAxisAlignment.center,  // Center the buttons vertically
+          crossAxisAlignment: CrossAxisAlignment.stretch, // Make buttons full width
           children: [
             ElevatedButton(
               onPressed: () {
@@ -31,35 +34,46 @@ class TenantScreen extends StatelessWidget {
                 );
               },
               child: Text('Monthly Bills'),
+              style: buttonStyle,
             ),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DownloadBillScreen(token: token), // 传入 token
+                    builder: (context) => DownloadBillScreen(token: token), // Pass the token
                   ),
                 );
               },
               child: Text('Download Bill Document'),
+              style: buttonStyle,
             ),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => UsageHistoryScreen(token: token), // 传入 token
+                    builder: (context) => UsageHistoryScreen(token: token), // Pass the token
                   ),
                 );
               },
               child: Text('Usage History'),
+              style: buttonStyle,
             ),
-            if (isPrincipleTenant)  // 仅当是主租户时显示上传按钮
-              ElevatedButton(
-                onPressed: () {
-                  // 上传文档功能（API尚未完成）
-                },
-                child: Text('Upload PDF Document'),
+            if (isPrincipleTenant)  // Show this button only for the principle tenant
+              Column(
+                children: [
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Logic to upload PDF (API not yet implemented)
+                    },
+                    child: Text('Upload PDF Document'),
+                    style: buttonStyle,
+                  ),
+                ],
               ),
           ],
         ),

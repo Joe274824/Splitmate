@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:open_file/open_file.dart';
+import 'dart:convert';
 
 class DownloadBillScreen extends StatefulWidget {
   final String token;
@@ -27,13 +24,19 @@ class _DownloadBillScreenState extends State<DownloadBillScreen> {
   }
 
   Future<void> _fetchBills() async {
+    final url = 'http://120.26.0.31:8080/bills';
+    print('Sending GET request to: $url');
+
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/bills'),
+      Uri.parse(url),
       headers: {
         'accept': '*/*',
         'Authorization': 'Bearer ${widget.token}',
       },
     );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       setState(() {
@@ -48,6 +51,7 @@ class _DownloadBillScreenState extends State<DownloadBillScreen> {
 
   Future<void> _downloadBill(int billId, String fileName) async {
     final url = 'http://120.26.0.31:8080/bills/download/$billId';
+    print('Sending GET request to: $url');
 
     final response = await http.get(
       Uri.parse(url),
@@ -56,6 +60,9 @@ class _DownloadBillScreenState extends State<DownloadBillScreen> {
         'Authorization': 'Bearer ${widget.token}',
       },
     );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body length: ${response.bodyBytes.length}');
 
     if (response.statusCode == 200) {
       final directory = await getApplicationDocumentsDirectory();
@@ -94,6 +101,10 @@ class _DownloadBillScreenState extends State<DownloadBillScreen> {
             trailing: ElevatedButton(
               onPressed: () => _downloadBill(bill['id'], bill['fileName']),
               child: Text('Download'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,  // Corrected parameter
+                padding: EdgeInsets.symmetric(vertical: 20),
+              ),
             ),
           );
         },
