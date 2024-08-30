@@ -40,5 +40,5 @@ public interface DeviceUsageMapper {
 
     List<DeviceUsage> getDeviceUsageByUsername(String username);
 
-    List<DeviceUsage> findUpdatedDataSince(Long timestamp);
+    List<DeviceUsage> findUpdatedDataSince(String timestamp);
 }

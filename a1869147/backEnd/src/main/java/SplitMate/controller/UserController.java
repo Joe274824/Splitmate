@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,10 +29,15 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createUser(@RequestBody User user) {
+    public ResponseEntity<String> createUser(@RequestPart("user") User user,
+                                             @RequestPart("photos") MultipartFile[] photos) {
+        if (photos.length != 3) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload exactly 3 photos");
+        }
+
         try {
-            userService.createUser(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully");
+            userService.createUserWithPhotos(user, photos);
+            return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully with photos uploaded");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to create user: " + e.getMessage());
         }

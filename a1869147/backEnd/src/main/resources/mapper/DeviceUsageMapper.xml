@@ -53,7 +53,7 @@
         DELETE FROM device_usage WHERE id = #{id}
     </delete>
 
-    <select id="findUpdatedDataSince" parameterType="Long" resultMap="DeviceUsageResultMap">
+    <select id="findUpdatedDataSince" parameterType="String" resultMap="DeviceUsageResultMap">
         SELECT * FROM device_usage WHERE last_updated > #{timestamp}
     </select>
 </mapper>

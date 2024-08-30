@@ -8,6 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 @Service
@@ -22,21 +24,17 @@ public class DataPollingService {
     private Long lastTimestamp = 0L; // 用于存储上次查询的时间戳
 
     // 定期查询数据库
-    @Scheduled(fixedRate = 5000) // 每5秒执行一次
-    public void pollDatabase() {
-        List<DeviceUsage> updatedData = deviceUsageService.getUpdatedDataSince(lastTimestamp);
+    @Scheduled(fixedRate = 3000) // 每5秒执行一次
+    public void pollDatabase() throws IOException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = sdf.format(lastTimestamp);
+        List<DeviceUsage> updatedData = deviceUsageService.getUpdatedDataSince(formattedDate);
 
         // 更新 lastTimestamp
         lastTimestamp = System.currentTimeMillis();
-
-        for (DeviceUsage data : updatedData) {
-            // 推送到 WebSocket 客户端
-            String message = JSON.toJSONString(data);
-            try {
-                webSocketServer.sendInfo(message, data.getUser().getId());
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (!updatedData.isEmpty()) {
+            String notificationMessage = "have new massage";
+            webSocketServer.sendInfo(notificationMessage, updatedData.get(0).getUser().getId());
             }
-        }
     }
 }
