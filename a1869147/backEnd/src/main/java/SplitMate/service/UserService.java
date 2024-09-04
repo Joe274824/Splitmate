@@ -82,4 +82,18 @@ public class UserService {
             return "";
         }
     }
+
+    public void savePhotos(Long userId, List<MultipartFile> photos) throws IOException {
+        String directoryPath = "path_to_directory/" + userId;
+        File directory = new File(directoryPath);
+
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        for (int i = 0; i < photos.size(); i++) {
+            String filePath = directoryPath + "/" + "photo" + (i + 1) + ".jpg";
+            photos.get(i).transferTo(new File(filePath));
+        }
+    }
 }
