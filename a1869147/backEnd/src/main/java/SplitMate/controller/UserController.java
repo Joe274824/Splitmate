@@ -55,11 +55,16 @@ public class UserController {
         }
     }
 
-    @PostMapping("/uploadPhotos")
+    @PostMapping(value = "/uploadPhotos", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadPhotos(@RequestParam("username") String username,
                                                @RequestParam("photos") List<MultipartFile> photos) {
         User user = userService.getUserByUsername(username);
         Long userId = user.getId();
+        System.out.println("Username: " + username);
+        System.out.println("Number of Photos: " + photos.size());
+        for (MultipartFile photo : photos) {
+            System.out.println("Photo Original Filename: " + photo.getOriginalFilename());
+        }
         if (photos.size() != 3) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload exactly 3 photos");
         }

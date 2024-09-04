@@ -17,6 +17,3 @@ mybatis:
 jwt:
   secret: mySecret
   token-validity: 3600000
-
-file:
-  upload-dir: uploads/

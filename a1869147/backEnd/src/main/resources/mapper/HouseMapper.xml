@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.HouseMapper">
+
+    <insert id="insertHouse" parameterType="SplitMate.domain.House">
+        INSERT INTO house_info (house_status, landlord_id, house_capacity, current_tenants)
+        VALUES (#{houseStatus}, #{landlordId}, #{houseCapacity}, #{currentTenants});
+    </insert>
+
+    <update id="updateHouse" parameterType="SplitMate.domain.House">
+        UPDATE house_info
+        SET house_status = #{houseStatus},
+            landlord_id = #{landlordId},
+            house_capacity = #{houseCapacity},
+            current_tenants = #{currentTenants}
+        WHERE house_id = #{houseId};
+    </update>
+
+    <delete id="deleteHouse" parameterType="int">
+        DELETE FROM house_info WHERE house_id = #{houseId};
+    </delete>
+
+    <select id="selectHouseById" parameterType="int" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE house_id = #{houseId};
+    </select>
+
+    <select id="selectAllHouses" parameterType="int" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE HOUSE_STATUS = #{status};
+    </select>
+
+</mapper>

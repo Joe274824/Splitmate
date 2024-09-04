@@ -40,4 +40,8 @@ public class DeviceUsageService {
     public List<DeviceUsage> getUpdatedDataSince(String timestamp) {
         return deviceUsageMapper.findUpdatedDataSince(timestamp);
     }
+
+    public List<DeviceUsage> getDeviceUsageOneMonth(Long id) {
+        return deviceUsageMapper.getDeviceUsageOneMonth(id);
+    }
 }

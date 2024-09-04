@@ -56,4 +56,13 @@
     <select id="findUpdatedDataSince" parameterType="String" resultMap="DeviceUsageResultMap">
         SELECT * FROM device_usage WHERE last_updated > #{timestamp}
     </select>
+
+    <select id="getDeviceUsageOneMonth" parameterType="Long" resultMap="DeviceUsageResultMap">
+        SELECT * FROM device_usage
+                 WHERE user_id = #{userId}
+                 AND start_time &gt;= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                 AND start_time &lt; CURDATE() + INTERVAL 1 DAY;
+    </select>
+
+
 </mapper>

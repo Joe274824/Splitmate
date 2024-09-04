@@ -1,17 +1,20 @@
 package SplitMate.controller;
 
 import SplitMate.domain.DeviceUsage;
+import SplitMate.domain.HouseTenant;
 import SplitMate.domain.User;
 import SplitMate.service.DeviceUsageService;
+import SplitMate.service.HouseService;
 import SplitMate.service.UserService;
 import SplitMate.util.JwtUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -26,6 +29,9 @@ public class DeviceUsageController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private HouseService houseService;
 
     @GetMapping
     public List<DeviceUsage> getAllDeviceUsages() {
@@ -43,8 +49,8 @@ public class DeviceUsageController {
     }
 
     @GetMapping("/username")
-    public void getDeviceUsageByUserID(@RequestHeader("Authorization")
-                                                         @ApiParam(required = false)String token) throws IOException {
+    public void getDeviceUsageByUserID(HttpServletRequest request) throws IOException {
+        String token = request.getHeader("Authorization");
         String jwtToken = token.substring(7);
         // 使用 JwtUtil 解析用户名
         String username = jwtUtil.extractUsername(jwtToken);
@@ -62,4 +68,28 @@ public class DeviceUsageController {
     public void deleteDeviceUsage(@PathVariable Long id) {
         deviceUsageService.deleteDeviceUsage(id);
     }
+
+    @GetMapping("/userOneMonth")
+    public List<DeviceUsage> getDeviceUsageOneMonth(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        String jwtToken = token.substring(7);
+        String username = jwtUtil.extractUsername(jwtToken);
+        User user = userService.getUserByUsername(username);
+        return deviceUsageService.getDeviceUsageOneMonth(user.getId());
+    }
+
+    @GetMapping("/AllUsageForMT")
+    public List<DeviceUsage> getAllDeviceUsageForMT(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        String jwtToken = token.substring(7);
+        String username = jwtUtil.extractUsername(jwtToken);
+        User user = userService.getUserByUsername(username);
+        List<HouseTenant> tenants = houseService.getHouseTenantByHouseId(houseService.getHouseIdByTenantId(user.getId().intValue()).getUserId());
+        List<DeviceUsage> AllUsage = new ArrayList<>();
+        for (HouseTenant tenant : tenants) {
+            AllUsage.add(deviceUsageService.getDeviceUsageById(tenant.getId()));
+        }
+        return AllUsage;
+    }
+
 }
