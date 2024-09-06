@@ -92,7 +92,9 @@ public class DeviceUsageController {
     }
 
     @GetMapping("/AllUsageForMT")
-    public ResponseEntity<?> getAllDeviceUsageForMT(HttpServletRequest request) {
+    public ResponseEntity<?> getAllDeviceUsageForMT(@RequestParam("year") int year,
+                                                    @RequestParam("month") int month,
+                                                    HttpServletRequest request) {
         String token = request.getHeader("Authorization");
         String jwtToken = token.substring(7);
         String username = jwtUtil.extractUsername(jwtToken);
@@ -102,9 +104,12 @@ public class DeviceUsageController {
         }
         List<HouseTenant> tenants = houseService.getHouseTenantByHouseId(houseService.getHouseIdByTenantId(user.getId().intValue()).getUserId());
         List<DeviceUsage> AllUsage = new ArrayList<>();
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startOfMonth = yearMonth.atDay(1);
+        LocalDate endOfMonth = yearMonth.atEndOfMonth();
         for (HouseTenant tenant : tenants) {
             User user1 = userService.getUserById((long) tenant.getUserId());
-            List<DeviceUsage> usage = deviceUsageService.getDeviceUsageByUsername(user1.getUsername());
+            List<DeviceUsage> usage = deviceUsageService.getDeviceUsageByMonth(user1.getId(), startOfMonth, endOfMonth);
             AllUsage.addAll(usage);
         }
         return ResponseEntity.ok(AllUsage);
