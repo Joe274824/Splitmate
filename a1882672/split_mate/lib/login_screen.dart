@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'register_screen.dart';
+import 'add_property_screen.dart';
+import 'apply_property_screen.dart';
 import 'tenant_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   final _nameController = TextEditingController();
@@ -28,27 +30,54 @@ class LoginScreen extends StatelessWidget {
     print("Server response: ${response.statusCode} - ${response.body}");
 
     if (response.statusCode == 200) {
-      final correctedJson = response.body
-          .replaceAllMapped(RegExp(r'(\w+)=([^,}]+)'), (match) {
-        return '"${match.group(1)}":"${match.group(2)}"';
-      });
-
-      print("Corrected response: $correctedJson");
-
-      final responseData = jsonDecode(correctedJson);
-
-      bool isPrincipleTenant = responseData['usertype'] == '1';
-      String token = responseData['token'];
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TenantScreen(
-            isPrincipleTenant: isPrincipleTenant,
-            token: token,
-          ),
-        ),
+      // Correct the invalid response format before parsing
+      String correctedResponse = response.body.replaceAllMapped(
+        RegExp(r'(\w+)=([^,}]+)'),
+            (Match m) => '"${m.group(1)}":"${m.group(2)}"',
       );
+
+      // Ensure the entire response is wrapped in braces if not already
+      if (!correctedResponse.startsWith('{')) {
+        correctedResponse = '{$correctedResponse}';
+      }
+
+      print("Corrected response: $correctedResponse");
+
+      final responseData = jsonDecode(correctedResponse);
+
+      bool isLandlord = responseData['usertype'] == '1';
+      String token = responseData['token'];
+      String? houseId = responseData['houseId'];
+
+      // Adjust check for "null" string
+      if (houseId == 'null') {
+        houseId = null;
+      }
+
+      if (isLandlord && houseId == null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AddPropertyScreen(token: token, isLandlord: isLandlord),
+          ),
+        );
+      } else if (!isLandlord && houseId == null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ApplyPropertyScreen(token: token),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                TenantScreen(isLandlord: isLandlord, token: token),
+          ),
+        );
+      }
     } else {
       print('Failed to login');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,44 +91,32 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Login'),
-        backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextFormField(
+            TextField(
               controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Username',
-                border: OutlineInputBorder(),
-              ),
+              decoration: InputDecoration(labelText: 'Username'),
             ),
             SizedBox(height: 20),
-            TextFormField(
+            TextField(
               controller: _passwordController,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-              ),
+              decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => _login(context),
               child: Text('Login'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-              ),
             ),
             SizedBox(height: 20),
             TextButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),
+                  MaterialPageRoute(builder: (context) => RegisterScreen()),  // 添加注册按钮
                 );
               },
               child: Text('Register'),
