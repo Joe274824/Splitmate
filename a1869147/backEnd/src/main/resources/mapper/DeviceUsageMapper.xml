@@ -15,6 +15,19 @@
         <id property="id" column="id"/>
         <result property="name" column="name"/>
     </resultMap>
+    <resultMap id="UserResultMap" type="SplitMate.domain.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+    </resultMap>
+    <resultMap id="DeviceUsageWithUserNameResultMap" type="SplitMate.domain.DeviceUsage">
+        <id property="id" column="id"/>
+        <result property="user.id" column="user_id"/>
+        <result property="device.id" column="device_id"/>
+        <result property="usageTime" column="usage_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <association property="user" javaType="SplitMate.domain.User" resultMap="UserResultMap"/>
+    </resultMap>
 
     <resultMap id="DeviceUsageWithDeviceNameResultMap" type="SplitMate.domain.DeviceUsage">
         <id property="id" column="id"/>
@@ -49,16 +62,16 @@
         WHERE id = #{id}
     </update>
 
-    <delete id="deleteDeviceUsage" parameterType="Long">
+    <delete id="deleteDeviceUsage">
         DELETE FROM device_usage WHERE id = #{id}
     </delete>
 
-    <select id="findUpdatedDataSince" parameterType="String" resultMap="DeviceUsageResultMap">
+    <select id="findUpdatedDataSince" resultMap="DeviceUsageResultMap">
         SELECT * FROM device_usage WHERE last_updated > #{timestamp}
     </select>
 
-    <select id="getDeviceUsageByMonth" parameterType="Long" resultMap="DeviceUsageResultMap">
-        SELECT * FROM device_usage WHERE user_id = #{userId} AND start_time BETWEEN #{startOfMonth} AND #{endOfMonth}
+    <select id="getDeviceUsageByMonth" resultMap="DeviceUsageWithUserNameResultMap">
+        SELECT ud.*, u.username FROM user u JOIN device_usage ud ON u.id = ud.user_id WHERE ud.user_id = #{userId} AND ud.start_time BETWEEN #{startOfMonth} AND #{endOfMonth}
     </select>
 
 

@@ -11,9 +11,9 @@ public class MqttService {
 
     private static final String BROKER_URL = "tcp://10.210.65.16:1883";
     private static final String CLIENT_ID = "java_client";
-    private static final String TOPIC = "user/usage";
+    private static final String TOPIC = "usage/#";
     private static final String username = "guanqiao";
-    private static final String password = "77136658Rm";
+    private static final String password = "77136658Rm.";
 
     private final SensorDataService sensorDataService;
 

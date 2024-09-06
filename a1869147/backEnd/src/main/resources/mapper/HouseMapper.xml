@@ -33,11 +33,11 @@
         SELECT * FROM house_info WHERE landlord_name LIKE CONCAT('%', #{name}, '%') and house_status = 1;
     </select>
 
-    <select id="selectHousesByStatus" parameterType="int" resultType="SplitMate.domain.House">
+    <select id="selectHousesByStatus" resultType="SplitMate.domain.House">
         SELECT * FROM house_info WHERE house_status = #{status};
     </select>
 
-    <select id="selectHousesByLandLordId" parameterType="int" resultType="SplitMate.domain.House">
+    <select id="selectHousesByLandLordId" resultType="SplitMate.domain.House">
         SELECT * FROM house_info WHERE landlord_id = #{id};
     </select>
 </mapper>

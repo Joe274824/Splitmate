@@ -3,6 +3,8 @@ package SplitMate.controller;
 import SplitMate.domain.House;
 import SplitMate.domain.HouseTenant;
 import SplitMate.domain.User;
+import SplitMate.mapper.HouseMapper;
+import SplitMate.mapper.HouseTenantMapper;
 import SplitMate.service.HouseService;
 import SplitMate.service.UserService;
 import SplitMate.util.JwtUtil;
@@ -26,11 +28,17 @@ public class HouseController {
     @Autowired
     private HouseService houseService; // 用于查询租客信息
 
+    @Autowired
+    private HouseTenantMapper houseTenantMapper;
 
     @PostMapping
-    public void addHouse(@RequestBody House house) {
+    public ResponseEntity addHouse(@RequestBody House house) {
         house.setHouseStatus(1);
         houseService.addHouse(house);
+        List<House> houseIdByLandlordId = houseService.getHouseIdByLandlordId((long) house.getLandlordId());
+        House house1 = houseIdByLandlordId.get(houseIdByLandlordId.size() - 1);
+        houseTenantMapper.insertHouseTenant((long) house1.getHouseId(), (long) house.getLandlordId());
+        return ResponseEntity.ok(HttpStatus.ACCEPTED);
     }
 
     @PutMapping
