@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.RentalApplicationMapper">
+
+    <!-- 插入申请 -->
+    <insert id="insertApplication" parameterType="SplitMate.domain.RentalApplication">
+        INSERT INTO rental_application (user_id, house_id, status, application_date)
+        VALUES (#{userId}, #{houseId}, #{status}, #{applicationDate})
+    </insert>
+
+    <!-- 根据 ID 获取申请 -->
+    <select id="getApplicationById" parameterType="Long" resultType="SplitMate.domain.RentalApplication">
+        SELECT * FROM rental_application WHERE id = #{id}
+    </select>
+
+    <!-- 更新申请状态 -->
+    <update id="updateApplicationStatus">
+        UPDATE rental_application
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 获取待审批的申请 -->
+    <select id="getPendingApplications" resultType="SplitMate.domain.RentalApplication">
+        SELECT * FROM rental_application WHERE status = 0 and house_id = #{id}
+    </select>
+
+</mapper>

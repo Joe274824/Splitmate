@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -127,55 +125,24 @@ public class WebSocketServer {
      * 实现服务器主动推送
      */
     public void sendMessage(String message) throws IOException {
-        this.session.getBasicRemote().sendText(message);
-    }
-
-    public void sendMessage1(JSON message) throws IOException {
-//        this.session.getBasicRemote().sendText(message);
-        // 创建 ObjectMapper 对象
         ObjectMapper objectMapper = new ObjectMapper();
-
-        // 将 JSON 对象转换为 JSON 字符串
-        String json = objectMapper.writeValueAsString(message);
-
-        // 发送消息
-        this.session.getBasicRemote().sendText(json);
+        String jsonMessage = objectMapper.writeValueAsString(message);
+        this.session.getBasicRemote().sendText(jsonMessage);
     }
-
-
-
-
 
     /**
      * 发送自定义消息
      */
     public static void sendInfo(String message, @PathParam("userId") Long userId) throws IOException {
-        log.info("发送消息到:" + userId + "，报文:" + message);
+        log.info("发送消息到: " + userId + "，报文: " + message);
         String userID = String.valueOf(userId);
+
         if (StringUtils.isNotBlank(userID) && webSocketMap.containsKey(userID)) {
             webSocketMap.get(userID).sendMessage(message);
         } else {
-            log.error("用户" + userID + ",不在线！");
+            log.error("用户 " + userID + " 不在线！");
         }
     }
-
-
-    /**
-     * 发送自定义消息
-     */
-    public static void sendInfo1(JSON message, @PathParam("userId") Long userId) throws IOException {
-        log.info("发送消息到:" + userId + "，报文:" + message);
-        String userID = String.valueOf(userId);
-
-        if (StringUtils.isNotBlank(userID) && webSocketMap.containsKey(userID)) {
-            webSocketMap.get(userID).sendMessage(message.toString());
-        } else {
-            log.error("用户" + userID + ",不在线！");
-        }
-    }
-
-
-
 
     public static synchronized int getOnlineCount() {
         return onlineCount;

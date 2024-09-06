@@ -12,13 +12,12 @@ public class House {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int houseId;
 
-    private byte houseStatus;
+    private int houseStatus;
     private int landlordId;
-    private int houseCapacity;
-    private int currentTenants;
-    private Integer availableTenants; // This field will be auto-calculated
+    private String landlordName;
+    private String Address;
+    private String Name;
 
-    // Getters and Setters
     public int getHouseId() {
         return houseId;
     }
@@ -27,11 +26,11 @@ public class House {
         this.houseId = houseId;
     }
 
-    public byte getHouseStatus() {
+    public int getHouseStatus() {
         return houseStatus;
     }
 
-    public void setHouseStatus(byte houseStatus) {
+    public void setHouseStatus(int houseStatus) {
         this.houseStatus = houseStatus;
     }
 
@@ -43,28 +42,28 @@ public class House {
         this.landlordId = landlordId;
     }
 
-    public int getHouseCapacity() {
-        return houseCapacity;
+    public String getLandlordName() {
+        return landlordName;
     }
 
-    public void setHouseCapacity(int houseCapacity) {
-        this.houseCapacity = houseCapacity;
+    public void setLandlordName(String landlordName) {
+        this.landlordName = landlordName;
     }
 
-    public int getCurrentTenants() {
-        return currentTenants;
+    public String getAddress() {
+        return Address;
     }
 
-    public void setCurrentTenants(int currentTenants) {
-        this.currentTenants = currentTenants;
+    public void setAddress(String address) {
+        Address = address;
     }
 
-    public Integer getAvailableTenants() {
-        return availableTenants;
+    public String getName() {
+        return Name;
     }
 
-    public void setAvailableTenants(Integer availableTenants) {
-        this.availableTenants = availableTenants;
+    public void setName(String name) {
+        Name = name;
     }
 }
 

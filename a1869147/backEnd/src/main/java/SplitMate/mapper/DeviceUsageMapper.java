@@ -3,6 +3,7 @@ package SplitMate.mapper;
 import SplitMate.domain.DeviceUsage;
 import org.apache.ibatis.annotations.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Mapper
@@ -42,5 +43,5 @@ public interface DeviceUsageMapper {
 
     List<DeviceUsage> findUpdatedDataSince(String timestamp);
 
-    List<DeviceUsage> getDeviceUsageOneMonth(Long id);
+    List<DeviceUsage> getDeviceUsageByMonth(Long userId, LocalDate startOfMonth, LocalDate endOfMonth);
 }

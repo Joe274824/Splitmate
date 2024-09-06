@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.SensorDataMapper">
+
+    <!-- 插入数据 -->
+    <insert id="insertSensorData" parameterType="SplitMate.domain.SensorData">
+        INSERT INTO sensor_data (data)
+        VALUES (#{data});
+    </insert>
+
+    <!-- 更新数据 -->
+    <update id="updateSensorData" parameterType="SplitMate.domain.SensorData">
+        UPDATE sensor_data
+        SET data = #{data}
+        WHERE id = #{id};
+    </update>
+
+    <!-- 删除数据 -->
+    <delete id="deleteSensorData" parameterType="long">
+        DELETE FROM sensor_data WHERE id = #{id};
+    </delete>
+
+    <!-- 根据ID查询数据 -->
+    <select id="selectSensorDataById" parameterType="long" resultType="SplitMate.domain.SensorData">
+        SELECT * FROM sensor_data WHERE id = #{id};
+    </select>
+
+    <!-- 查询所有数据 -->
+    <select id="selectAllSensorData" resultType="SplitMate.domain.SensorData">
+        SELECT * FROM sensor_data;
+    </select>
+
+</mapper>

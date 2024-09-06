@@ -11,5 +11,7 @@ public interface HouseTenantMapper {
     List<HouseTenant> getTenantsByHouseId(int houseId);
 
     HouseTenant getHouseIdByTenantId(int tenantId);
+
+    void insertHouseTenant(Long houseId, Long userId);
 }
 

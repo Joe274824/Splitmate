@@ -3,16 +3,17 @@
 <mapper namespace="SplitMate.mapper.HouseMapper">
 
     <insert id="insertHouse" parameterType="SplitMate.domain.House">
-        INSERT INTO house_info (house_status, landlord_id, house_capacity, current_tenants)
-        VALUES (#{houseStatus}, #{landlordId}, #{houseCapacity}, #{currentTenants});
+        INSERT INTO house_info (house_status, landlord_id, landlord_name, address, name)
+        VALUES (#{houseStatus}, #{landlordId}, #{landlordName}, #{Address}, #{Name});
     </insert>
 
     <update id="updateHouse" parameterType="SplitMate.domain.House">
         UPDATE house_info
         SET house_status = #{houseStatus},
             landlord_id = #{landlordId},
-            house_capacity = #{houseCapacity},
-            current_tenants = #{currentTenants}
+            landlord_name = #{landlordName},
+            address = #{Address},
+            name = #{Name}
         WHERE house_id = #{houseId};
     </update>
 
@@ -24,8 +25,19 @@
         SELECT * FROM house_info WHERE house_id = #{houseId};
     </select>
 
-    <select id="selectAllHouses" parameterType="int" resultType="SplitMate.domain.House">
-        SELECT * FROM house_info WHERE HOUSE_STATUS = #{status};
+    <select id="selectAllHouses" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE house_status = 1;
     </select>
 
+    <select id="selectHousesByLandLordName" parameterType="String" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE landlord_name LIKE CONCAT('%', #{name}, '%') and house_status = 1;
+    </select>
+
+    <select id="selectHousesByStatus" parameterType="int" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE house_status = #{status};
+    </select>
+
+    <select id="selectHousesByLandLordId" parameterType="int" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE landlord_id = #{id};
+    </select>
 </mapper>

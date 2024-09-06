@@ -13,4 +13,9 @@
     <select id="getHouseIdByTenantId" resultType="SplitMate.domain.HouseTenant">
         SELECT * FROM house_tenant WHERE user_id = #{tenantId}
     </select>
+
+
+    <insert id="insertHouseTenant">
+        INSERT INTO house_tenant (user_id, house_id) VALUES (#{userId}, #{houseId});
+    </insert>
 </mapper>

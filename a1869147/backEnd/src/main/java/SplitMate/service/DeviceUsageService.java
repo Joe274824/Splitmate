@@ -5,6 +5,7 @@ import SplitMate.mapper.DeviceUsageMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -41,7 +42,7 @@ public class DeviceUsageService {
         return deviceUsageMapper.findUpdatedDataSince(timestamp);
     }
 
-    public List<DeviceUsage> getDeviceUsageOneMonth(Long id) {
-        return deviceUsageMapper.getDeviceUsageOneMonth(id);
+    public List<DeviceUsage> getDeviceUsageByMonth(Long userId, LocalDate startOfMonth, LocalDate endOfMonth) {
+        return deviceUsageMapper.getDeviceUsageByMonth(userId, startOfMonth, endOfMonth);
     }
 }

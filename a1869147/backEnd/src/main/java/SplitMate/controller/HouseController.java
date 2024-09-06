@@ -29,6 +29,7 @@ public class HouseController {
 
     @PostMapping
     public void addHouse(@RequestBody House house) {
+        house.setHouseStatus(1);
         houseService.addHouse(house);
     }
 
@@ -57,8 +58,24 @@ public class HouseController {
         return houseService.getHousesByStatus(status);
     }
 
-    @GetMapping("/tenants")
-    public ResponseEntity<List<User>> getAllTenants(HttpServletRequest request) {
+    @GetMapping("/searchByLLN")
+    public List<House> getHousesByLandLordName(@RequestParam String name) {
+        return houseService.getHousesByLandLordName(name);
+    }
+
+    @GetMapping("/houses")
+    public ResponseEntity<List<House>> getHousesByLandLord(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        String username = jwtUtil.extractUsername(token.substring(7));
+        User user = userService.getUserByUsername(username);
+        if (user.getUserType() != 1) {
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(houseService.getHouseIdByLandlordId(user.getId()));
+    }
+
+    @GetMapping("/tenants/{houseId}")
+    public ResponseEntity<List<User>> getAllTenants(@PathVariable int houseId, HttpServletRequest request) {
         // 从请求头中获取token
         String token = request.getHeader("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
@@ -78,8 +95,6 @@ public class HouseController {
         }
 
         // 查询房屋的所有租客
-        HouseTenant houseIdByTenantId = houseService.getHouseIdByTenantId(user.getId().intValue());
-        int houseId = houseIdByTenantId.getHouseId();
         List<HouseTenant> houseTenant = houseService.getHouseTenantByHouseId(houseId);
         if (houseTenant.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);

@@ -7,6 +7,7 @@ import SplitMate.mapper.HouseMapper;
 import SplitMate.mapper.HouseTenantMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 
@@ -52,5 +53,13 @@ public class HouseService {
 
     public List<House> getHousesByStatus(int status) {
         return houseMapper.selectHousesByStatus(status);
+    }
+
+    public List<House> getHousesByLandLordName(String name) {
+        return houseMapper.selectHousesByLandLordName(name);
+    }
+
+    public List<House> getHouseIdByLandlordId(Long id) {
+        return houseMapper.selectHousesByLandLordId(id);
     }
 }

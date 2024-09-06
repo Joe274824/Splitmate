@@ -2,13 +2,11 @@ package SplitMate.service;
 
 import SplitMate.controller.WebSocketServer;
 import SplitMate.domain.DeviceUsage;
-import com.alibaba.fastjson.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -34,7 +32,7 @@ public class DataPollingService {
         lastTimestamp = System.currentTimeMillis();
         if (!updatedData.isEmpty()) {
             String notificationMessage = "have new massage";
-            webSocketServer.sendInfo(notificationMessage, updatedData.get(0).getUser().getId());
+            WebSocketServer.sendInfo(notificationMessage, updatedData.get(0).getUser().getId());
             }
     }
 }

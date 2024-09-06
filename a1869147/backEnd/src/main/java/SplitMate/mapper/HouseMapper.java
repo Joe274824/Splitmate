@@ -26,4 +26,8 @@ public interface HouseMapper {
 
     // 查询 house_status 为 1 的房屋
     List<House> selectHousesByStatus(int status);
+
+    List<House> selectHousesByLandLordName(String name);
+
+    List<House> selectHousesByLandLordId(Long id);
 }
