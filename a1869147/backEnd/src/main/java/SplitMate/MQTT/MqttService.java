@@ -35,6 +35,9 @@ public class MqttService {
             client.subscribe(TOPIC, (topic, message) -> {
                 String payload = new String(message.getPayload());
                 System.out.println("Received message: " + payload);
+                Thread.sleep(3000);
+                payload = new String(message.getPayload());
+                System.out.println("Received message: " + payload);
                 handleMessage(payload);
             });
 

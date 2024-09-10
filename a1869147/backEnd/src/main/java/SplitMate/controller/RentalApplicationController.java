@@ -2,6 +2,7 @@ package SplitMate.controller;
 
 import SplitMate.domain.House;
 import SplitMate.domain.RentalApplication;
+import SplitMate.domain.RentalApplicationWithUserDTO;
 import SplitMate.domain.User;
 import SplitMate.mapper.HouseTenantMapper;
 import SplitMate.service.HouseService;
@@ -60,16 +61,16 @@ public class RentalApplicationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User is not LandLord");
         }
         List<House> houses = houseService.getHousesByLandLordName(user.getUsername());
-        Map<RentalApplication, User> rentalApplications = new HashMap<RentalApplication, User>() {
-        };
+        List<RentalApplicationWithUserDTO> result = new ArrayList<>();
         for (House house : houses) {
             List<RentalApplication> applications = rentalApplicationService.getPendingApplications((long) house.getHouseId());
             for (RentalApplication application : applications) {
                 User user1 = userService.getUserById(application.getUserId());
-                rentalApplications.put(application, user1);
+                RentalApplicationWithUserDTO rentalApplicationWithUserDTO = new RentalApplicationWithUserDTO(application,user1);
+                result.add(rentalApplicationWithUserDTO);
             }
         }
-        return ResponseEntity.ok(rentalApplications);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{ApplicationId}")
