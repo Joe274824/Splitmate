@@ -37,4 +37,6 @@ public interface DeviceMapper {
      * @param id the ID of the device to be deleted.
      */
     void deleteDevice(Long id);
+
+    Device getDeviceByName(String name);
 }

@@ -14,6 +14,7 @@
     <resultMap id="DeviceResultMap" type="SplitMate.domain.Device">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
+        <result property="category" column="category"/>
     </resultMap>
     <resultMap id="UserResultMap" type="SplitMate.domain.User">
         <id property="id" column="id"/>
@@ -26,6 +27,10 @@
         <result property="usageTime" column="usage_time"/>
         <result property="startTime" column="start_time"/>
         <result property="endTime" column="end_time"/>
+        <association property="device" javaType="SplitMate.domain.Device">
+            <result property="name" column="device_name"/>
+            <result property="category" column="device_category"/>
+        </association>
         <association property="user" javaType="SplitMate.domain.User" resultMap="UserResultMap"/>
     </resultMap>
 
@@ -48,7 +53,23 @@
     </select>
 
     <select id="getDeviceUsageByUsername" parameterType="String" resultMap="DeviceUsageWithDeviceNameResultMap">
-        SELECT ud.* ,d.name FROM user u JOIN device_usage ud ON u.id = ud.user_id JOIN device d ON ud.device_id = d.id WHERE u.username = #{username}
+        SELECT
+            ud.id,
+            ud.user_id,
+            ud.device_id,
+            ud.usage_time AS usageTime,
+            ud.start_time AS startTime,
+            ud.end_time AS endTime,
+            d.name,
+            d.category
+        FROM
+            user u
+                JOIN
+            device_usage ud ON u.id = ud.user_id
+                JOIN
+            device d ON ud.device_id = d.id
+        WHERE
+            u.username = #{username}
     </select>
 
     <insert id="insertDeviceUsage" parameterType="SplitMate.domain.DeviceUsage" useGeneratedKeys="true" keyProperty="id">
@@ -71,8 +92,23 @@
     </select>
 
     <select id="getDeviceUsageByMonth" resultMap="DeviceUsageWithUserNameResultMap">
-        SELECT ud.*, u.username FROM user u JOIN device_usage ud ON u.id = ud.user_id WHERE ud.user_id = #{userId} AND ud.start_time BETWEEN #{startOfMonth} AND #{endOfMonth}
+        SELECT
+            ud.*,
+            u.username,
+            d.name AS device_name,
+            d.category AS device_category
+        FROM
+            user u
+                JOIN
+            device_usage ud ON u.id = ud.user_id
+                JOIN
+            device d ON ud.device_id = d.id
+        WHERE
+            ud.user_id = #{userId}
+          AND ud.start_time BETWEEN #{startOfMonth} AND #{endOfMonth}
     </select>
-
+    <select id="getDeviceUsageByDeviceId" parameterType="Long" resultMap="DeviceUsageResultMap">
+        SELECT * FROM device_usage WHERE device_id = #{id} ORDER BY last_updated DESC LIMIT 1;
+    </select>
 
 </mapper>

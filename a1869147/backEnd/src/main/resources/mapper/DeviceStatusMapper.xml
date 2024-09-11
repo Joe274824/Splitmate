@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="SplitMate.mapper.DeviceStatusMapper">
+
+    <!-- ResultMap for mapping columns to fields -->
+    <resultMap id="DeviceStatusResultMap" type="SplitMate.domain.DeviceStatus">
+        <id property="id" column="id"/>
+        <result property="deviceName" column="device_name"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="deviceStatus" column="device_status"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- Select by ID -->
+    <select id="getDeviceStatusById" parameterType="Long" resultMap="DeviceStatusResultMap">
+        SELECT * FROM device_status WHERE id = #{id}
+    </select>
+    <select id="getDeviceStatusByName" resultMap="DeviceStatusResultMap">
+        SELECT * FROM device_status WHERE device_name = #{name}
+    </select>
+
+    <!-- Select all records -->
+    <select id="getAllDeviceStatuses" resultMap="DeviceStatusResultMap">
+        SELECT * FROM device_status
+    </select>
+
+    <!-- Insert new record -->
+    <insert id="insertDeviceStatus" parameterType="SplitMate.domain.DeviceStatus" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device_status (device_name, device_id, device_status, update_time)
+        VALUES (#{deviceName}, #{deviceId}, #{deviceStatus}, #{updateTime})
+    </insert>
+
+    <!-- Update existing record -->
+    <update id="updateDeviceStatus" parameterType="SplitMate.domain.DeviceStatus">
+        UPDATE device_status
+        SET device_name = #{deviceName}, device_id = #{deviceId}, device_status = #{deviceStatus}, update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- Delete record by ID -->
+    <delete id="deleteDeviceStatus" parameterType="Long">
+        DELETE FROM device_status WHERE id = #{id}
+    </delete>
+
+</mapper>

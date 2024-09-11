@@ -7,6 +7,7 @@
         <id property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="power" column="power"/>
+        <result property="category" column="category"/>
     </resultMap>
 
     <select id="getAllDevices" resultMap="DeviceResultMap">
@@ -18,17 +19,21 @@
     </select>
 
     <insert id="insertDevice" parameterType="SplitMate.domain.Device" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO device (name, power)
-        VALUES (#{name}, #{power})
+        INSERT INTO device (name, power, category)
+        VALUES (#{name}, #{power}, #{category})
     </insert>
 
     <update id="updateDevice" parameterType="SplitMate.domain.Device">
         UPDATE device
-        SET name = #{name}, power = #{power}
+        SET name = #{name}, power = #{power}, category = #{category}
         WHERE id = #{id}
     </update>
 
     <delete id="deleteDevice" parameterType="Long">
         DELETE FROM device WHERE id = #{id}
     </delete>
+    <select id="getDeviceByName" resultMap="DeviceResultMap">
+        SELECT * FROM device WHERE name = #{name}
+    </select>
+
 </mapper>
