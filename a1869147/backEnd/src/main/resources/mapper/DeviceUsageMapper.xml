@@ -57,9 +57,9 @@
             ud.id,
             ud.user_id,
             ud.device_id,
-            ud.usage_time AS usageTime,
-            ud.start_time AS startTime,
-            ud.end_time AS endTime,
+            ud.usage_time,
+            ud.start_time,
+            ud.end_time,
             d.name,
             d.category
         FROM

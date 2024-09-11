@@ -33,8 +33,6 @@ public class MqttService implements MqttCallback {
         this.sensorDataService = sensorDataService;
         connectAndSubscribe();
     }
-
-    private MqttClient client;
     @Autowired
     public DeviceStatusMapper deviceStatusMapper;
     @Autowired
