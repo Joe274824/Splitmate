@@ -10,6 +10,7 @@
         <result property="password" column="password"/>
         <result property="status" column="status"/>
         <result property="createdAt" column="created_at"/>
+        <result property="userType" column="user_type"/>
     </resultMap>
 
     <select id="getAllUsers" resultMap="UserResultMap">
@@ -21,8 +22,8 @@
     </select>
 
     <insert id="insertUser" parameterType="SplitMate.domain.User" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO user (username, email, password, status, created_at)
-        VALUES (#{username}, #{email}, #{password}, #{status}, #{createdAt})
+        INSERT INTO user (username, email, password, status, created_at, user_type)
+        VALUES (#{username}, #{email}, #{password}, #{status}, #{createdAt}, #{userType})
     </insert>
 
     <update id="updateUser" parameterType="SplitMate.domain.User">
