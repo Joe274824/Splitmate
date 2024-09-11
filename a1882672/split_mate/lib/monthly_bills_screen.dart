@@ -1,9 +1,10 @@
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'models/bill_data.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class MonthlyBillsScreen extends StatefulWidget {
   final String token;
@@ -17,18 +18,20 @@ class MonthlyBillsScreen extends StatefulWidget {
 class _MonthlyBillsScreenState extends State<MonthlyBillsScreen> {
   List<BillData> _billData = [];
 
+  // get http => null;
+
   @override
   void initState() {
     super.initState();
-    _fetchElectricityUsage();
+    _fetchUsageData();
   }
 
-  // 获取电费使用数据并更新图表
-  Future<void> _fetchElectricityUsage() async {
+  // Fetch water, gas, and electricity usage data and update the chart
+  Future<void> _fetchUsageData() async {
     final now = DateTime.now();
     final List<BillData> fetchedData = [];
 
-    // 循环获取过去三个月的电费数据
+    // Loop to get usage data for the last three months
     for (int i = 2; i >= 0; i--) {
       DateTime targetMonth = DateTime(now.year, now.month - i);
       final response = await http.get(
@@ -41,19 +44,36 @@ class _MonthlyBillsScreenState extends State<MonthlyBillsScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as List;
-        double totalUsage = 0;
+        double totalElectricityUsage = 0;
+        double totalWaterUsage = 0;
+        double totalGasUsage = 0;
 
         for (var item in data) {
-          totalUsage += item['usageTime'];  // 累加usageTime作为电费
+          String category = item['device']['category'];
+          int usageTime = item['usageTime'];
+
+          // Categorize usage based on the category field
+          if (category == 'elec') {
+            totalElectricityUsage += usageTime;
+          } else if (category == 'water') {
+            totalWaterUsage += usageTime;
+          } else if (category == 'gas') {
+            totalGasUsage += usageTime;
+          }
         }
 
-        // 将每月的数据加入fetchedData列表中
+        double electricityBill = totalElectricityUsage * 0.1;
+        double waterBill = totalWaterUsage * 0.1;
+        double gasBill = totalGasUsage * 0.1;
+        double totalBill = electricityBill + waterBill + gasBill;
+
+        // Add the data for the current month
         fetchedData.add(BillData(
-          DateFormat('MMM').format(targetMonth), // 月份名称，例如Jan, Feb
-          totalUsage, // 当前电费
-          50, // 假设的水费，您可以根据API或其他数据源更新
-          20, // 假设的燃气费
-          totalUsage + 50 + 20, // 总费用
+          DateFormat('MMM').format(targetMonth), // Month name, e.g., Jan, Feb
+          electricityBill,
+          waterBill,
+          gasBill,
+          totalBill,
         ));
       } else {
         print('Failed to fetch usage data for ${targetMonth.month}');
@@ -61,7 +81,7 @@ class _MonthlyBillsScreenState extends State<MonthlyBillsScreen> {
     }
 
     setState(() {
-      _billData = fetchedData;  // 更新界面上的账单数据
+      _billData = fetchedData;  // Update the UI with the new bill data
     });
   }
 
@@ -116,6 +136,7 @@ class _MonthlyBillsScreenState extends State<MonthlyBillsScreen> {
   }
 }
 
+// Model class for bill data
 class BillData {
   final String month;
   final double electricityBill;

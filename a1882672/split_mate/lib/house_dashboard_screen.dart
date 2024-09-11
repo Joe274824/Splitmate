@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'add_property_screen.dart';
 
 class HouseDashboardScreen extends StatefulWidget {
   final String token;
@@ -12,11 +13,10 @@ class HouseDashboardScreen extends StatefulWidget {
 }
 
 class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
-  List<dynamic> properties = [];
-  int? selectedHouseId;
-  List<dynamic> tenants = [];
-  bool isLoadingProperties = true;
-  bool isLoadingTenants = false;
+  List<dynamic> _properties = [];
+  List<dynamic> _tenants = [];
+  String? _selectedProperty;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -35,22 +35,18 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
 
     if (response.statusCode == 200) {
       setState(() {
-        properties = json.decode(response.body);
-        isLoadingProperties = false;
+        _properties = jsonDecode(response.body);
+        _isLoading = false;
       });
     } else {
       setState(() {
-        isLoadingProperties = false;
+        _isLoading = false;
       });
-      print('Failed to fetch properties');
+      print('获取房产数据失败');
     }
   }
 
-  Future<void> _fetchTenants(int houseId) async {
-    setState(() {
-      isLoadingTenants = true;
-    });
-
+  Future<void> _fetchTenants(String houseId) async {
     final response = await http.get(
       Uri.parse('http://120.26.0.31:8080/api/house/tenants/$houseId'),
       headers: {
@@ -61,14 +57,28 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
 
     if (response.statusCode == 200) {
       setState(() {
-        tenants = json.decode(response.body);
-        isLoadingTenants = false;
+        _tenants = jsonDecode(response.body);
       });
     } else {
-      setState(() {
-        isLoadingTenants = false;
-      });
-      print('Failed to fetch tenants');
+      print('获取租户数据失败');
+    }
+  }
+
+  Future<void> _removeTenant(int tenantId, String houseId) async {
+    final response = await http.delete(
+      Uri.parse('http://120.26.0.31:8080/api/house/tenants/$houseId/$tenantId'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': '*/*',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('租户删除成功')));
+      _fetchTenants(houseId); // 刷新租户列表
+    } else {
+      print('删除租户失败');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('删除租户失败')));
     }
   }
 
@@ -78,68 +88,74 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
       appBar: AppBar(
         title: Text('House Dashboard'),
       ),
-      body: isLoadingProperties
+      body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButton<int>(
-              hint: Text('Select Property'),
-              value: selectedHouseId,
-              items: properties.map<DropdownMenuItem<int>>((property) {
-                return DropdownMenuItem<int>(
-                  value: property['houseId'],
-                  child: Text(property['name']),
-                );
-              }).toList(),
-              onChanged: (int? value) {
-                setState(() {
-                  selectedHouseId = value;
-                  if (selectedHouseId != null) {
-                    _fetchTenants(selectedHouseId!);
-                  }
-                });
-              },
-            ),
-            SizedBox(height: 20),
-            if (isLoadingTenants)
-              Center(child: CircularProgressIndicator())
-            else if (selectedHouseId != null && tenants.isEmpty)
-              Center(child: Text('No tenants available for this property'))
-            else if (selectedHouseId != null)
+            Row(
+              children: [
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: tenants.length,
-                    itemBuilder: (context, index) {
-                      final tenant = tenants[index];
-                      return ListTile(
-                        title: Text(tenant['username']),
-                        subtitle: Text(tenant['email']),
-                        trailing: ElevatedButton(
-                          onPressed: () => _removeTenant(tenant['id']),
-                          child: Text('Remove'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                        ),
-                      );
+                  child: DropdownButton<String>(
+                    hint: Text('property'),
+                    value: _selectedProperty,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedProperty = newValue!;
+                        _fetchTenants(_selectedProperty!);
+                      });
                     },
+                    items: _properties.map<DropdownMenuItem<String>>((property) {
+                      return DropdownMenuItem<String>(
+                        value: property['houseId'].toString(),
+                        child: Text(property['name']),
+                      );
+                    }).toList(),
                   ),
                 ),
+                SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddPropertyScreen(
+                          token: widget.token,
+                          isLandlord: true,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text('New property'),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            _selectedProperty == null
+                ? Text('Please choose one property')
+                : Expanded(
+              child: ListView.builder(
+                itemCount: _tenants.length,
+                itemBuilder: (context, index) {
+                  final tenant = _tenants[index];
+                  return ListTile(
+                    title: Text(tenant['username']),
+                    subtitle: Text('ID: ${tenant['id']}'),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        _removeTenant(tenant['id'], _selectedProperty!);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _removeTenant(int tenantId) async {
-    // Logic to remove tenant from the house (API logic not implemented)
-    print('Removing tenant with ID: $tenantId');
-    // Refresh the tenant list
-    if (selectedHouseId != null) {
-      _fetchTenants(selectedHouseId!);
-    }
   }
 }

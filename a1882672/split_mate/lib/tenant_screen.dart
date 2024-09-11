@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'monthly_bills_screen.dart';
 import 'download_bill_screen.dart';
 import 'usage_history_screen.dart';
-import 'house_dashboard_screen.dart';  // Import HouseDashboardScreen
-import 'tenants_usage_screen.dart';  // Import TenantsUsageScreen
+import 'house_dashboard_screen.dart';
+import 'tenants_usage_screen.dart';
 import 'login_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -24,18 +24,22 @@ class _TenantScreenState extends State<TenantScreen> {
   String userRole = '';
   bool isLoading = true;
   double electricityUsage = 0;
+  double waterUsage = 0;
+  double gasUsage = 0;
   DateTime nextBillDate = DateTime.now();
   double estimatedElectricity = 0;
+  double estimatedWater = 0;
+  double estimatedGas = 0;
 
   @override
   void initState() {
     super.initState();
     _fetchUserDetails();
-    _fetchElectricityUsage();
+    _fetchUsagePrices();
     _calculateNextBillDate();
   }
 
-  // 获取用户详情
+  // Fetch user details
   Future<void> _fetchUserDetails() async {
     final response = await http.get(
       Uri.parse('http://120.26.0.31:8080/users/findUser'),
@@ -60,14 +64,14 @@ class _TenantScreenState extends State<TenantScreen> {
     }
   }
 
-  // 计算下一个账单日期为本月最后一天
+  // Calculate next bill date as the last day of the current month
   void _calculateNextBillDate() {
     final now = DateTime.now();
-    nextBillDate = DateTime(now.year, now.month + 1, 0);  // 当前月的最后一天
+    nextBillDate = DateTime(now.year, now.month + 1, 0); // Last day of the current month
   }
 
-  // 获取电费使用数据
-  Future<void> _fetchElectricityUsage() async {
+  // Fetch usage data for water, gas, and electricity
+  Future<void> _fetchUsagePrices() async {
     final now = DateTime.now();
     final response = await http.get(
       Uri.parse('http://120.26.0.31:8080/deviceUsages/userOneMonth?month=${now.month}&year=${now.year}'),
@@ -79,24 +83,51 @@ class _TenantScreenState extends State<TenantScreen> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as List;
-      double totalUsage = 0;
+      double totalElectricityUsage = 0;
+      double totalWaterUsage = 0;
+      double totalGasUsage = 0;
+
       for (var item in data) {
-        totalUsage += item['usageTime'];  // 累加usageTime作为当前电费
+        String category = item['device']['category'];
+        int usageTime = item['usageTime'];
+
+        // Debugging print statement to verify each category and usage time
+        print('Category: $category, Usage Time: $usageTime');
+
+        if (category == 'elec') {
+          totalElectricityUsage += usageTime;
+        } else if (category == 'water') {
+          totalWaterUsage += usageTime;
+        } else if (category == 'gas') {
+          totalGasUsage += usageTime;
+        }
       }
+
+      // Log the total usage for debugging
+      print('Total Electricity Usage: $totalElectricityUsage');
+      print('Total Water Usage: $totalWaterUsage');
+      print('Total Gas Usage: $totalGasUsage');
+
       setState(() {
-        electricityUsage = totalUsage*0.1;
-        _calculateEstimatedElectricity(now);
+        electricityUsage = totalElectricityUsage * 0.1;
+        waterUsage = totalWaterUsage * 0.1;
+        gasUsage = totalGasUsage * 0.1;
+
+        _calculateEstimatedPrices(now);
       });
     } else {
       print('Failed to fetch usage data');
     }
   }
 
-  // 计算预计电费
-  void _calculateEstimatedElectricity(DateTime now) {
-    int pastDays = now.day; // 已经过的天数
-    int totalDays = nextBillDate.day; // 本月的总天数
+  // Calculate estimated prices for electricity, water, and gas
+  void _calculateEstimatedPrices(DateTime now) {
+    int pastDays = now.day; // Days passed in the current month
+    int totalDays = nextBillDate.day; // Total days in the current month
+
     estimatedElectricity = (electricityUsage / pastDays) * totalDays;
+    estimatedWater = (waterUsage / pastDays) * totalDays;
+    estimatedGas = (gasUsage / pastDays) * totalDays;
   }
 
   @override
@@ -168,7 +199,7 @@ class _TenantScreenState extends State<TenantScreen> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MonthlyBillsScreen(token: widget.token ,)),
+                  MaterialPageRoute(builder: (context) => MonthlyBillsScreen(token: widget.token)),
                 );
               },
             ),
@@ -194,7 +225,6 @@ class _TenantScreenState extends State<TenantScreen> {
                 );
               },
             ),
-            // Add these options if the user is a landlord
             if (widget.isLandlord) ...[
               ListTile(
                 leading: Icon(Icons.dashboard),
@@ -249,16 +279,15 @@ class _TenantScreenState extends State<TenantScreen> {
             ),
             SizedBox(height: 10),
             Text(
-              'Current Water Price: \$[Water Price]', // Placeholder for water price
+              'Current Water Price: \$${waterUsage.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 16),
             ),
             Text(
               'Current Electricity Price: \$${electricityUsage.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 16),
             ),
-
             Text(
-              'Current Gas Price: \$[Gas Price]', // Placeholder for gas price
+              'Current Gas Price: \$${gasUsage.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
@@ -267,7 +296,7 @@ class _TenantScreenState extends State<TenantScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
-              'Water: \$[Estimated Water Bill]',
+              'Water: \$${estimatedWater.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 16),
             ),
             Text(
@@ -275,12 +304,8 @@ class _TenantScreenState extends State<TenantScreen> {
               style: TextStyle(fontSize: 16),
             ),
             Text(
-              'Gas: \$[Estimated Gas Bill]',
+              'Gas: \$${estimatedGas.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 16),
-            ),
-            Text(
-              'Total: \$[Total Estimated Bill]',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),

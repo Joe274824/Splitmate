@@ -5,9 +5,8 @@ import 'dart:convert';
 
 import 'models/usage_data.dart';  // For date formatting
 
-
 class UsageHistoryScreen extends StatefulWidget {
-  final String token; // 接收从 LoginScreen 传递的 token
+  final String token; // Receives the token from the LoginScreen
 
   UsageHistoryScreen({required this.token});
 
@@ -21,15 +20,15 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
   bool _isSearchByDeviceActive = false;
   final int _recordsPerPage = 10;
   List<UsageData> _usageHistory = [];
-  List<UsageData> _allUsageHistory = []; // 保存所有记录的副本
-  String _selectedDevice = "Devices"; // 默认显示文本
-  List<String> _deviceNames = []; // 存储设备名称
+  List<UsageData> _allUsageHistory = []; // Saves all records
+  String _selectedDevice = "Devices"; // Default display text
+  List<String> _deviceNames = []; // Stores device names
 
   @override
   void initState() {
     super.initState();
-    _fetchUsageHistory(); // 调用API获取数据
-    _fetchDeviceNames(); // 调用API获取设备名称
+    _fetchUsageHistory(); // Call API to get data
+    _fetchDeviceNames(); // Call API to get device names
   }
 
   List<UsageData> _getCurrentPageRecords() {
@@ -51,17 +50,34 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       List<UsageData> fetchedData = data.map((item) {
+        // Safely parsing the date and usageTime, and category
+        DateTime? startTime;
+        String formattedDate = 'Invalid date';
+        String formattedStartTime = 'Invalid time';
+        String category = item['device']['category'] ?? 'Unknown';
+        String deviceName = item['device']['name'] ?? 'Unknown Device';
+        int usageTime = item['usageTime'] ?? 0;
+
+        try {
+          startTime = DateTime.parse(item['startTime']);
+          formattedDate = DateFormat('dd/MM/yyyy').format(startTime);
+          formattedStartTime = DateFormat('hh:mm a').format(startTime);
+        } catch (e) {
+          print("Error parsing date: $e");
+        }
+
         return UsageData(
-          DateFormat('dd/MM/yyyy').format(DateTime.parse(item['startTime'])),
-          DateFormat('hh:mm a').format(DateTime.parse(item['startTime'])),
-          item['device']['name'],
-          '${item['usageTime']} mins',
+          formattedDate,
+          formattedStartTime,
+          deviceName,
+          '$usageTime mins',
+          category,
         );
       }).toList();
 
       setState(() {
         _usageHistory = fetchedData;
-        _allUsageHistory = fetchedData; // 保存所有数据
+        _allUsageHistory = fetchedData; // Save all data
       });
     } else {
       print('Failed to load usage history');
@@ -79,7 +95,7 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      List<String> deviceNames = data.map<String>((item) => item['name']).toList();
+      List<String> deviceNames = data.map<String>((item) => item['name'] ?? 'Unknown Device').toList();
 
       setState(() {
         _deviceNames = deviceNames;
@@ -93,7 +109,7 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
     setState(() {
       _isSearchByDateActive = true;
       _isSearchByDeviceActive = false;
-      _selectedDevice = "Devices"; // 重置设备选择
+      _selectedDevice = "Devices"; // Reset device selection
       _usageHistory = _allUsageHistory.where((record) {
         return record.date == DateFormat('dd/MM/yyyy').format(selectedDate);
       }).toList();
@@ -108,7 +124,7 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
     setState(() {
       _isSearchByDeviceActive = true;
       _isSearchByDateActive = false;
-      _selectedDevice = deviceName; // 更新按钮显示的设备名
+      _selectedDevice = deviceName; // Update displayed device name
       _usageHistory = _allUsageHistory.where((record) {
         return record.device == deviceName;
       }).toList();
@@ -123,7 +139,7 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
     setState(() {
       _isSearchByDeviceActive = false;
       _selectedDevice = "Devices";
-      _usageHistory = _allUsageHistory; // 重置为所有记录
+      _usageHistory = _allUsageHistory; // Reset to all records
     });
   }
 
@@ -180,20 +196,20 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_selectedDevice == "Devices") {
-                    _showDevicePicker(); // 显示设备选择器
+                    _showDevicePicker(); // Show device picker
                   } else {
-                    _resetDeviceSearch(); // 重置搜索
+                    _resetDeviceSearch(); // Reset search
                   }
                 },
-                child: Text(_selectedDevice), // 显示当前选择的设备或"Devices"
+                child: Text(_selectedDevice), // Display current selected device or "Devices"
               ),
               ElevatedButton(
                 onPressed: () {
                   setState(() {
                     _isSearchByDateActive = false;
                     _isSearchByDeviceActive = false;
-                    _selectedDevice = "Devices"; // 重置设备选择
-                    _usageHistory = _allUsageHistory; // 重置为所有记录
+                    _selectedDevice = "Devices"; // Reset device selection
+                    _usageHistory = _allUsageHistory; // Reset to all records
                   });
                 },
                 child: Text('Reset'),
@@ -211,7 +227,7 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
-                    'Device: ${data.device}\nDuration: ${data.duration}',
+                    'Device: ${data.device}\nDuration: ${data.duration}\nCategory: ${data.category}', // Updated to show category
                     style: TextStyle(fontSize: 16),
                   ),
                 );
