@@ -28,7 +28,7 @@ public class WebSocketServer {
      */
     private static int onlineCount = 0;
     /**
-     * concurrent包的线程安全Set，用来存放每个客户端对应的MyWebSocket对象。
+     * concurrent包的线程安全Map，用来存放每个客户端对应的MyWebSocket对象。
      */
     private static ConcurrentHashMap<String, WebSocketServer> webSocketMap = new ConcurrentHashMap<>();
     /**
@@ -134,13 +134,13 @@ public class WebSocketServer {
      * 发送自定义消息
      */
     public static void sendInfo(String message, @PathParam("userId") Long userId) throws IOException {
-        log.info("发送消息到: " + userId + "，报文: " + message);
+        log.info("Send Massage to: " + userId + "，post: " + message);
         String userID = String.valueOf(userId);
 
         if (StringUtils.isNotBlank(userID) && webSocketMap.containsKey(userID)) {
             webSocketMap.get(userID).sendMessage(message);
         } else {
-            log.error("用户 " + userID + " 不在线！");
+            log.error("user " + userID + " is not online！");
         }
     }
 

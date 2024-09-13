@@ -25,9 +25,7 @@ public class MqttService implements MqttCallback {
     private static final String TOPIC = "usage/#";
     private static final String username = "guanqiao";
     private static final String password = "77136658Rm.";
-
     private final SensorDataService sensorDataService;
-
     @Autowired
     public MqttService(SensorDataService sensorDataService) {
         this.sensorDataService = sensorDataService;
@@ -39,7 +37,6 @@ public class MqttService implements MqttCallback {
     public UserMapper userMapper;
     @Autowired
     public DeviceMapper deviceMapper;
-
     @Autowired
     public DeviceUsageMapper deviceUsageMapper;
 
@@ -66,16 +63,15 @@ public class MqttService implements MqttCallback {
 
     @Override
     public void connectionLost(Throwable cause) {
-        // 处理连接丢失时的逻辑
         System.out.println("Connection lost, trying to reconnect...");
-        connectAndSubscribe();  // 尝试重新连接
+        connectAndSubscribe();  // try reconnection
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
         String payload = new String(mqttMessage.getPayload());
         System.out.println("Received message: " + payload);
-        handleMessage(payload);  // 处理消息
+        handleMessage(payload);  // process massage
     }
 
     @Override
@@ -84,7 +80,6 @@ public class MqttService implements MqttCallback {
     }
 
     private String handleMessage(String payload) {
-        // 处理消息并保存到数据库
         SensorData sensorData = new SensorData();
         JSONObject jsonObject = JSON.parseObject(payload);
         System.out.println(jsonObject.toJSONString());
@@ -103,14 +98,14 @@ public class MqttService implements MqttCallback {
         deviceUsage.setUser(user);
         DeviceStatus status = deviceStatusMapper.getDeviceStatusByName(device);
         if (Objects.equals(status.getDeviceStatus(), "0")) {
-            System.out.println("设备启用");
+            System.out.println("device open");
             deviceUsage.setStartTime((Timestamp) time);
             status.setDeviceStatus("1");
             deviceStatusMapper.updateDeviceStatus(status);
             deviceUsageMapper.insertDeviceUsage(deviceUsage);
-            System.out.println("保存成功！");
+            System.out.println("save successful！");
         } else {
-            System.out.println("设备停用");
+            System.out.println("device close");
             status.setDeviceStatus("0");
             deviceStatusMapper.updateDeviceStatus(status);
             DeviceUsage deviceUsageByDeviceId = deviceUsageMapper.getDeviceUsageByDeviceId(device1.getId());
@@ -121,7 +116,7 @@ public class MqttService implements MqttCallback {
             long usageTime = Duration.between(startTime1, endTime).getSeconds() / 60;
             deviceUsageByDeviceId.setUsageTime(Math.toIntExact(usageTime));
             deviceUsageMapper.updateDeviceUsage(deviceUsageByDeviceId);
-            System.out.println("保存成功！");
+            System.out.println("save successful！");
         }
 
         sensorData.setData(payload);
