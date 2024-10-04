@@ -81,7 +81,61 @@ class LoginScreen extends StatelessWidget {
     } else {
       print('Failed to login');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('登录失败，请检查用户名和密码')),
+        SnackBar(content: Text('Login failed, please check your username and password.')),
+      );
+    }
+  }
+
+  // 忘记密码功能
+  Future<void> _forgotPassword(BuildContext context) async {
+    String? email;
+
+    // 弹出一个输入邮箱的对话框
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Forgot Password'),
+          content: TextField(
+            decoration: InputDecoration(labelText: 'Enter your email'),
+            onChanged: (value) {
+              email = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (email != null && email!.isNotEmpty) {
+                  Navigator.of(context).pop(); // 关闭对话框
+                  _sendForgotPasswordRequest(email!,context);
+                }
+              },
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 发送忘记密码请求到服务器
+  Future<void> _sendForgotPasswordRequest(String email, BuildContext context) async {
+    final response = await http.post(
+      Uri.parse('http://120.26.0.31:8080/users/forgot-password?email=$email'),
+      headers: {'accept': '*/*'},
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password reset link has been sent to your email.')),
+      );
+    } else if (response.statusCode == 400) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send password reset email: Email address not found.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Something went wrong. Please try again later.')),
       );
     }
   }
@@ -120,6 +174,10 @@ class LoginScreen extends StatelessWidget {
                 );
               },
               child: Text('Register'),
+            ),
+            TextButton(
+              onPressed: () => _forgotPassword(context),  // 忘记密码按钮
+              child: Text('Forgot Password?'),
             ),
           ],
         ),
