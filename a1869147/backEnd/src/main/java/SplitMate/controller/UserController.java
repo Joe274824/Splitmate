@@ -7,12 +7,14 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping("/users")
 public class UserController {
 
@@ -88,5 +90,43 @@ public class UserController {
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok("User deleted successfully");
+    }
+
+    // 找回密码接口，发送重置链接到用户邮箱
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        try {
+            userService.sendPasswordResetEmail(email);
+            return ResponseEntity.ok("Password reset link has been sent to your email.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to send password reset email: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/reset-password")
+    public String showResetPasswordPage(@RequestParam("token") String token, Model model) {
+        model.addAttribute("token", token);
+        return "reset-password"; // 返回 reset-password.html
+    }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(@RequestParam String token,
+                                @RequestParam String newPassword,
+                                @RequestParam String confirmPassword,
+                                Model model) {
+
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("message", "Passwords do not match.");
+            return "reset-password";
+        }
+
+        try {
+            userService.resetPassword(token, newPassword); // 实现密码重置
+            model.addAttribute("message", "Password reset successfully. You can close this page and log in from the app.");
+            return "reset-password";
+        } catch (Exception e) {
+            model.addAttribute("message", "Failed to reset password: " + e.getMessage());
+            return "reset-password";
+        }
     }
 }

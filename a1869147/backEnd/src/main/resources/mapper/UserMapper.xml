@@ -40,4 +40,8 @@
         SELECT * FROM user WHERE username = #{username}
     </select>
 
+    <select id="findByEmail" parameterType="String" resultMap="UserResultMap">
+        SELECT * FROM user WHERE email = #{email}
+    </select>
+
 </mapper>
