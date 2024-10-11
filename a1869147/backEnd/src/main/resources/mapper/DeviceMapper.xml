@@ -35,5 +35,9 @@
     <select id="getDeviceByName" resultMap="DeviceResultMap">
         SELECT * FROM device WHERE name = #{name}
     </select>
+    <select id="getDeviceByBLEAddress" resultMap="DeviceResultMap">
+        SELECT * FROM device WHERE BLE_address = #{BLEAddress}
+    </select>
+
 
 </mapper>

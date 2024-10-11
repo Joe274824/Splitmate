@@ -39,4 +39,6 @@ public interface DeviceMapper {
     void deleteDevice(Long id);
 
     Device getDeviceByName(String name);
+
+    Device getDeviceByBLEAddress(String bleAddress);
 }

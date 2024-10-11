@@ -13,7 +13,16 @@ public class Device {
 
     private String category;
 
-    // Getters and Setters
+    private String BLEAddress;
+
+    public String getBLEAddress() {
+        return BLEAddress;
+    }
+
+    public void setBLEAddress(String BLEAddress) {
+        this.BLEAddress = BLEAddress;
+    }
+// Getters and Setters
 
     public String getCategory() {
         return category;
