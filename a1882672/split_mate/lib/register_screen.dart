@@ -15,6 +15,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _emailController = TextEditingController();
   bool _isLandlord = false; // Option for whether the user is a landlord
+  final _formKey = GlobalKey<FormState>();  // Form validation key
+  bool _isEmailValid = true;  // Email validation state
 
   File? _photo1;
   File? _photo2;
@@ -122,6 +124,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  // Email validation function
+  void _validateEmail(String value) {
+    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    setState(() {
+      _isEmailValid = emailRegExp.hasMatch(value);
+    });
+  }
+
   Future<void> _registerUser() async {
     // Check if all photos are uploaded and passed face detection
     if (_photo1 == null || _photo2 == null || _photo3 == null) {
@@ -133,6 +143,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    if (!_isEmailValid) {
+      _showErrorDialog("Please provide a valid email address.");
+      return;
+    }
+
     // All photos passed validation, proceed with registration
     final Map<String, dynamic> requestBody = {
       'username': _usernameController.text,
@@ -140,9 +155,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'email': _emailController.text,
       'userType': _isLandlord ? 1 : 0,
     };
-
-    // Print the request body to the console for debugging
-    print('Request Body: ${jsonEncode(requestBody)}');
 
     final response = await http.post(
       Uri.parse('http://120.26.0.31:8080/users/create'),
@@ -171,57 +183,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // Enable scrolling
-          child: Column(
-            children: [
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(labelText: 'Username'),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Are you a landlord?'),
-                  Switch(
-                    value: _isLandlord,
-                    onChanged: (value) {
-                      setState(() {
-                        _isLandlord = value;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              _buildPhotoUploadSection(1, _photo1),
-              SizedBox(height: 20),
-              _buildPhotoUploadSection(2, _photo2),
-              SizedBox(height: 20),
-              _buildPhotoUploadSection(3, _photo3),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _registerUser, // Only call if validation passed
-                child: Text('Register'),
-              ),
-            ],
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildTextField(_usernameController, 'Username'),
+                SizedBox(height: 20),
+                _buildTextField(_passwordController, 'Password', isPassword: true),
+                SizedBox(height: 20),
+                _buildTextField(
+                  _emailController,
+                  'Email',
+                  isEmail: true,
+                  errorText: _isEmailValid ? null : 'Invalid email format',
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Are you a landlord?'),
+                    Switch(
+                      value: _isLandlord,
+                      onChanged: (value) {
+                        setState(() {
+                          _isLandlord = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                _buildPhotoUploadSection(1, _photo1),
+                SizedBox(height: 20),
+                _buildPhotoUploadSection(2, _photo2),
+                SizedBox(height: 20),
+                _buildPhotoUploadSection(3, _photo3),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _registerUser, // Only call if validation passed
+                  child: Text('Register'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  // A helper function to build standardized input fields
+  Widget _buildTextField(TextEditingController controller, String label, {bool isPassword = false, bool isEmail = false, String? errorText}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        errorText: errorText,
+        border: OutlineInputBorder(), // Standard border style
+      ),
+      obscureText: isPassword,
+      keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
+      onChanged: isEmail ? (value) => _validateEmail(value) : null, // Email validation
+    );
+  }
+
+  // Photo upload section with scaling
   Widget _buildPhotoUploadSection(int photoNumber, File? photoFile) {
     return Column(
       children: [

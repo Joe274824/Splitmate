@@ -8,6 +8,7 @@ import 'house_dashboard_screen.dart';
 import 'tenants_usage_screen.dart';
 import 'login_screen.dart';
 import 'package:intl/intl.dart';
+import 'ble_scan_screen.dart';
 
 class TenantScreen extends StatefulWidget {
   final bool isLandlord;
@@ -22,7 +23,7 @@ class TenantScreen extends StatefulWidget {
 class _TenantScreenState extends State<TenantScreen> {
   String username = '';
   String userRole = '';
-  bool isLoading = true;
+  bool isLoading = false;
   double electricityUsage = 0;
   double waterUsage = 0;
   double gasUsage = 0;
@@ -189,6 +190,17 @@ class _TenantScreenState extends State<TenantScreen> {
                       token: widget.token,
                     ),
                   ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.bluetooth),
+              title: Text('BLE Devices'),  // New item for BLE scanning
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BLEScanScreen(token: widget.token)),
                 );
               },
             ),
