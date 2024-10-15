@@ -15,9 +15,16 @@ public class User {
     private String status;
     private Timestamp createdAt;
     private int userType;
+    private String userPhoneId;
 
     // Getters and Setters
+    public String getUserPhoneId() {
+        return userPhoneId;
+    }
 
+    public void setUserPhoneId(String userPhoneId) {
+        this.userPhoneId = userPhoneId;
+    }
 
     public void setId(Long id) {
         this.id = id;

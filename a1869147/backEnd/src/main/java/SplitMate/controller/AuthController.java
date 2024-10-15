@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api")
@@ -54,6 +55,11 @@ public class AuthController {
             response.put("token", jwt);
             response.put("usertype", user.getUserType() + "");
             response.put("houseId", house == null ? "null" : house.getId() + "");
+            if (!Objects.equals(user.getUserPhoneId(), authenticationRequest.getUserPhoneID())) {
+                response.put("userPhoneIdCheck", "false");
+            } else {
+                response.put("userPhoneIdCheck", "true");
+            }
             return ResponseEntity.ok(response.toString());
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed: " + e.getMessage());

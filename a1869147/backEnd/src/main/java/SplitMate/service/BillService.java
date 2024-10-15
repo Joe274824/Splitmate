@@ -36,7 +36,7 @@ public class BillService {
     }
 
     // 保存账单文件
-    public void saveBill(MultipartFile file, Long userId) throws IOException {
+    public void saveBill(MultipartFile file, Long userId, Long houseId) throws IOException {
         // 将文件保存到指定目录或数据库
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename(); // 加上时间戳避免冲突
         String uploadDir = "uploads/" + userId;
@@ -55,13 +55,14 @@ public class BillService {
         Bill bill = new Bill();
         bill.setUserId(userId);
         bill.setFileName(fileName);
+        bill.setHouseId(houseId);
         bill.setFilePath(filePath.toString());
         billMapper.insertBill(bill);
     }
 
     // 查询所有可下载的账单
-    public List<Bill> getAllBills() {
-        return billMapper.getAllBills();
+    public List<Bill> getAllBills(Long houseId) {
+        return billMapper.getAllBills(houseId);
     }
 
     // 加载指定的 PDF 文件

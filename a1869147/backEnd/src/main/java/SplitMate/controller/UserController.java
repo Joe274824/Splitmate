@@ -12,6 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -59,23 +61,45 @@ public class UserController {
 
     @PostMapping(value = "/uploadPhotos", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadPhotos(@RequestParam("username") String username,
-                                               @RequestParam("photos") List<MultipartFile> photos) {
+                                               @RequestParam("photo1") MultipartFile photo1,
+                                               @RequestParam("photo2") MultipartFile photo2,
+                                               @RequestParam("photo3") MultipartFile photo3) {
+        System.out.println("Received username: " + username);
+        ArrayList<MultipartFile> photos = new ArrayList<>();
+        photos.add(photo1);
+        photos.add(photo2);
+        photos.add(photo3);
+        System.out.println("Number of photos: " + photos.size());
+        // 检查用户是否存在
         User user = userService.getUserByUsername(username);
-        Long userId = user.getId();
-        System.out.println("Username: " + username);
-        System.out.println("Number of Photos: " + photos.size());
-        for (MultipartFile photo : photos) {
-            System.out.println("Photo Original Filename: " + photo.getOriginalFilename());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
         }
+        Long userId = user.getId();
+        // 检查照片数量是否为 3
         if (photos.size() != 3) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload exactly 3 photos");
         }
 
+        // 处理文件上传
         try {
+            for (MultipartFile photo : photos) {
+                if (photo.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("One of the photos is empty");
+                }
+
+                System.out.println("Photo Original Filename: " + photo.getOriginalFilename());
+            }
+
+            // 保存照片
             userService.savePhotos(userId, photos);
+
             return ResponseEntity.status(HttpStatus.CREATED).body("Photos uploaded successfully");
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to upload photos: " + e.getMessage());
+            // 捕获所有异常
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upload photos: " + e.getMessage());
         }
     }
 

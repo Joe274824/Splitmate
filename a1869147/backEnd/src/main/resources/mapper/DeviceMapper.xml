@@ -8,6 +8,7 @@
         <result property="name" column="name"/>
         <result property="power" column="power"/>
         <result property="category" column="category"/>
+        <result property="imagePath" column="image_path"/>
     </resultMap>
 
     <select id="getAllDevices" resultMap="DeviceResultMap">
@@ -25,7 +26,12 @@
 
     <update id="updateDevice" parameterType="SplitMate.domain.Device">
         UPDATE device
-        SET name = #{name}, power = #{power}, category = #{category}
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="power != null">power = #{power},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="imagePath != null">image_path = #{imagePath}</if>
+        </set>
         WHERE id = #{id}
     </update>
 

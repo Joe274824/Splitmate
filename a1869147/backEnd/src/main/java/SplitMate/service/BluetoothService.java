@@ -55,14 +55,14 @@ public class BluetoothService {
             deviceUsage.setUser(user);
             DeviceStatus status = deviceStatusMapper.getDeviceStatusByName(device.getName());
             if (Objects.equals(status.getDeviceStatus(), "0")) {
-                System.out.println("device open");
+                System.out.println("device:" + device.getName() + " open");
                 deviceUsage.setStartTime(new Timestamp(System.currentTimeMillis()));
                 status.setDeviceStatus("1");
                 deviceStatusMapper.updateDeviceStatus(status);
                 deviceUsageMapper.insertDeviceUsage(deviceUsage);
                 System.out.println("save successful！");
             } else {
-                System.out.println("device close");
+                System.out.println("device:" + device.getName() + " close");
                 status.setDeviceStatus("0");
                 deviceStatusMapper.updateDeviceStatus(status);
                 DeviceUsage deviceUsageByDeviceId = deviceUsageMapper.getDeviceUsageByDeviceId(device.getId());

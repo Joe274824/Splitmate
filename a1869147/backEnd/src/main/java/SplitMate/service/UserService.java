@@ -64,11 +64,16 @@ public class UserService {
     }
 
     public void savePhotos(Long userId, List<MultipartFile> photos) throws IOException {
-        String directoryPath = "user-photos/" + userId;
+        // 获取临时目录并构造绝对路径
+        String tempDir = System.getProperty("java.io.tmpdir");
+        String directoryPath = tempDir + "device-photos/" + userId;
         File directory = new File(directoryPath);
 
         if (!directory.exists()) {
-            directory.mkdirs();
+            boolean dirCreated = directory.mkdirs(); // 使用mkdirs()确保创建多级目录
+            if (!dirCreated) {
+                throw new IOException("Failed to create directory: " + directoryPath);
+            }
         }
 
         for (int i = 0; i < photos.size(); i++) {

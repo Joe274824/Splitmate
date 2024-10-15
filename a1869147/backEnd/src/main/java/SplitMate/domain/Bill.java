@@ -14,9 +14,9 @@ public class Bill {
     private Long id;
 
     private Long userId;
+    private Long houseId;
     private String fileName;
     private String filePath;
-
     private Timestamp uploadTime;
 
     public Timestamp getUploadTime() {
@@ -26,8 +26,16 @@ public class Bill {
     public void setUploadTime(Timestamp uploadTime) {
         this.uploadTime = uploadTime;
     }
-// Getters and Setters
+    // Getters and Setters
 
+
+    public Long getHouseId() {
+        return houseId;
+    }
+
+    public void setHouseId(Long houseId) {
+        this.houseId = houseId;
+    }
 
     public Long getId() {
         return id;

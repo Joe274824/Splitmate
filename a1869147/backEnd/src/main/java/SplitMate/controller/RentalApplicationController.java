@@ -50,25 +50,27 @@ public class RentalApplicationController {
     }
 
     @ApiOperation(value = "0: 待审批, 1: 已批准, 2: 已拒绝")
-    @GetMapping
-    public ResponseEntity<?> getRentalApplications(HttpServletRequest request) {
+    @GetMapping("/house/{houseID}")
+    public ResponseEntity<?> getRentalApplicationsByHouseID(@PathVariable Long houseID,
+                                                            HttpServletRequest request) {
         String token = request.getHeader("Authorization");
         String jwtToken = token.substring(7);
         // 使用 JwtUtil 解析用户名
         String username = jwtUtil.extractUsername(jwtToken);
         User user = userService.getUserByUsername(username);
         if (user.getUserType() != 1) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User is not LandLord");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User is not LandLord");
         }
-        List<House> houses = houseService.getHousesByLandLordName(user.getUsername());
         List<RentalApplicationWithUserDTO> result = new ArrayList<>();
-        for (House house : houses) {
-            List<RentalApplication> applications = rentalApplicationService.getPendingApplications((long) house.getHouseId());
+        List<RentalApplication> applications = rentalApplicationService.getPendingApplications(houseID);
+        if (!applications.isEmpty()) {
             for (RentalApplication application : applications) {
                 User user1 = userService.getUserById(application.getUserId());
-                RentalApplicationWithUserDTO rentalApplicationWithUserDTO = new RentalApplicationWithUserDTO(application,user1);
+                RentalApplicationWithUserDTO rentalApplicationWithUserDTO = new RentalApplicationWithUserDTO(application, user1);
                 result.add(rentalApplicationWithUserDTO);
             }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("There's no pending applications for the house");
         }
         return ResponseEntity.ok(result);
     }

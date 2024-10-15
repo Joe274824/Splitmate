@@ -14,7 +14,7 @@ public interface BillMapper {
 
     List<Bill> getBillsByUserId(Long userId);
 
-    List<Bill> getAllBills();
+    List<Bill> getAllBills(Long houseId);
 
     void deleteBillById(Long id);
 }
