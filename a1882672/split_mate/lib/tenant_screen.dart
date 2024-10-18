@@ -35,9 +35,25 @@ class _TenantScreenState extends State<TenantScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUserDetails();
-    _fetchUsagePrices();
-    _calculateNextBillDate();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await _fetchUserDetails();
+      await _fetchUsagePrices();
+      _calculateNextBillDate();
+    } catch (e) {
+      _showErrorDialog();
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   // Fetch user details
@@ -55,13 +71,9 @@ class _TenantScreenState extends State<TenantScreen> {
       setState(() {
         username = data['username'];
         userRole = widget.isLandlord ? 'Landlord' : 'Tenant';
-        isLoading = false;
       });
     } else {
-      setState(() {
-        isLoading = false;
-      });
-      print('Failed to fetch user details');
+      throw Exception('Failed to fetch user details');
     }
   }
 
@@ -117,7 +129,7 @@ class _TenantScreenState extends State<TenantScreen> {
         _calculateEstimatedPrices(now);
       });
     } else {
-      print('Failed to fetch usage data');
+      throw Exception('Failed to fetch usage data');
     }
   }
 
@@ -129,6 +141,22 @@ class _TenantScreenState extends State<TenantScreen> {
     estimatedElectricity = (electricityUsage / pastDays) * totalDays;
     estimatedWater = (waterUsage / pastDays) * totalDays;
     estimatedGas = (gasUsage / pastDays) * totalDays;
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text('Cannot connect to server'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

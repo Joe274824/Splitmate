@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:http_parser/http_parser.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -103,6 +104,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final faceDetector = FaceDetector(options: FaceDetectorOptions());
     final List<Face> faces = await faceDetector.processImage(inputImage);
 
+    // 打印人脸检测的结果
+    print('Detected ${faces.length} face(s)');
+    for (var face in faces) {
+      print('Face bounding box: ${face.boundingBox}');
+      print('Head Euler Angle Y: ${face.headEulerAngleY}');
+      print('Head Euler Angle Z: ${face.headEulerAngleZ}');
+    }
+
     return faces.length == 1;
   }
 
@@ -126,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // Email validation function
   void _validateEmail(String value) {
-    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegExp = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     setState(() {
       _isEmailValid = emailRegExp.hasMatch(value);
     });
@@ -156,6 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'userType': _isLandlord ? 1 : 0,
     };
 
+    print('Request body: ' + jsonEncode(requestBody));
     final response = await http.post(
       Uri.parse('http://120.26.0.31:8080/users/create'),
       headers: <String, String>{
@@ -164,14 +174,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
       body: jsonEncode(requestBody),
     );
+    print('Response status: ' + response.statusCode.toString());
+    print('Response body: ' + response.body);
 
     if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Registration successful! Uploading photos...')),
       );
+      await _uploadPhotos();
       Navigator.pop(context);
     } else {
       _showErrorDialog("Registration failed. Please try again.");
+    }
+  }
+
+  Future<void> _uploadPhotos() async {
+    if (_photo1 == null || _photo2 == null || _photo3 == null) {
+      return;
+    }
+
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://120.26.0.31:8080/users/uploadPhotos'),
+    );
+    request.headers['accept'] = '*/*';
+    request.headers['Content-Type'] = 'multipart/form-data';
+    request.files.add(await http.MultipartFile.fromPath('photo1', _photo1!.path, contentType: MediaType('image', 'jpeg')));
+    request.files.add(await http.MultipartFile.fromPath('photo2', _photo2!.path, contentType: MediaType('image', 'jpeg')));
+    request.files.add(await http.MultipartFile.fromPath('photo3', _photo3!.path, contentType: MediaType('image', 'jpeg')));
+    request.fields['username'] = _usernameController.text;
+
+    // 打印上传请求的请求体
+    print('Uploading photos for username: ${_usernameController.text}');
+    print('Photo 1 path: ${_photo1!.path}');
+    print('Photo 2 path: ${_photo2!.path}');
+    print('Photo 3 path: ${_photo3!.path}');
+
+    var response = await request.send();
+
+    // 打印服务器返回的响应体
+    var responseBody = await response.stream.bytesToString();
+    print('Response status: ${response.statusCode}');
+    print('Response body: $responseBody');
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Photos uploaded successfully!')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload photos')));
     }
   }
 
