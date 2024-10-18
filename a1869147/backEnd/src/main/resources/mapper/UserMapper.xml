@@ -29,7 +29,14 @@
 
     <update id="updateUser" parameterType="SplitMate.domain.User">
         UPDATE user
-        SET username = #{username}, email = #{email}, password = #{password}, status = #{status}, created_at = #{createdAt}, user_phone_id = #{userPhoneId}
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+            <if test="userPhoneId != null">user_phone_id = #{userPhoneId}</if>
+        </set>
         WHERE id = #{id}
     </update>
 

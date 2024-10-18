@@ -80,11 +80,14 @@ public class RentalApplicationController {
         return ResponseEntity.ok(rentalApplicationService.getApplicationById(ApplicationId));
     }
 
-    @PutMapping
-    public ResponseEntity updateRentalApplication(@RequestParam RentalApplication rentalApplication) {
+    @PostMapping
+    public ResponseEntity updateRentalApplication(@RequestBody RentalApplication rentalApplication) {
         if (rentalApplication.getStatus() == 1) {
             rentalApplicationService.updateApplicationStatus(rentalApplication.getId(), rentalApplication.getStatus());
             houseTenantMapper.insertHouseTenant(rentalApplication.getHouseId(), rentalApplication.getUserId());
+            return ResponseEntity.ok(HttpStatus.OK);
+        } else if (rentalApplication.getStatus() == 2) {
+            rentalApplicationService.updateApplicationStatus(rentalApplication.getId(), rentalApplication.getStatus());
             return ResponseEntity.ok(HttpStatus.OK);
         } else {
             rentalApplicationService.updateApplicationStatus(rentalApplication.getId(), rentalApplication.getStatus());

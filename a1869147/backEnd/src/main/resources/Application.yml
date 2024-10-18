@@ -2,7 +2,7 @@ server:
   port: 8080
 spring:
   datasource:
-    url: jdbc:mysql://120.26.0.31:3306/splitmate?rewriteBatchedStatements=false
+    url: jdbc:mysql://13.55.123.136:3306/splitmate?rewriteBatchedStatements=false
     username: root
     password: dJ<#/3-.1|7&m5ob
     driver-class-name: com.mysql.cj.jdbc.Driver
