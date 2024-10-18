@@ -61,7 +61,7 @@ public class DeviceService {
     public void saveDevicePhoto(Long deviceId, MultipartFile photo) throws IOException {
         // 获取临时目录并构造绝对路径
         String tempDir = System.getProperty("java.io.tmpdir");
-        String directoryPath = tempDir + "device-photos/" + deviceId;
+        String directoryPath = tempDir + "user-photos/" + deviceId;
         File directory = new File(directoryPath);
 
         if (!directory.exists()) {
