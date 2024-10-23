@@ -9,6 +9,7 @@
         <result property="power" column="power"/>
         <result property="category" column="category"/>
         <result property="imagePath" column="image_path"/>
+        <result property="BLEAddress" column="BLE_address"/>
     </resultMap>
 
     <select id="getAllDevices" resultMap="DeviceResultMap">
@@ -20,8 +21,8 @@
     </select>
 
     <insert id="insertDevice" parameterType="SplitMate.domain.Device" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO device (name, power, category)
-        VALUES (#{name}, #{power}, #{category})
+        INSERT INTO device (name, power, category, BLE_address, image_path)
+        VALUES (#{name}, #{power}, #{category}, #{BLEAddress}, #{imagePath})
     </insert>
 
     <update id="updateDevice" parameterType="SplitMate.domain.Device">
@@ -31,6 +32,7 @@
             <if test="power != null">power = #{power},</if>
             <if test="category != null">category = #{category},</if>
             <if test="imagePath != null">image_path = #{imagePath}</if>
+            <if test="BLEAddress != null">BLE_address = #{BLEAddress}</if>
         </set>
         WHERE id = #{id}
     </update>
