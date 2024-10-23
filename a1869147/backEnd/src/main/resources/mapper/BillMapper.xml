@@ -12,12 +12,14 @@
         <result property="fileName" column="file_name"/>
         <result property="filePath" column="file_path"/>
         <result property="uploadTime" column="upload_time"/>
+        <result property="billDate" column="bill_date"/>
+        <result property="category" column="category"/>
     </resultMap>
 
     <!-- 插入账单 -->
     <insert id="insertBill" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO bills (user_id, house_id, file_name, file_path, upload_time)
-        VALUES (#{userId}, #{houseId}, #{fileName}, #{filePath}, #{uploadTime})
+        INSERT INTO bills (user_id, house_id, file_name, file_path, upload_time, bill_date, category)
+        VALUES (#{userId}, #{houseId}, #{fileName}, #{filePath}, #{uploadTime}, #{billDate}, #{category})
     </insert>
 
     <!-- 根据 ID 获取账单 -->

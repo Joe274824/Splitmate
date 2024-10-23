@@ -9,11 +9,14 @@ import SplitMate.service.HouseService;
 import SplitMate.service.UserService;
 import SplitMate.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +25,7 @@ import java.util.List;
 public class HouseController {
 
     @Autowired
-    private JwtUtil jwtUtil; // 用于解析token
+    private JwtUtil jwtUtil;
     @Autowired
     private UserService userService; // 用于查询用户信息
     @Autowired
@@ -32,9 +35,9 @@ public class HouseController {
     private HouseTenantMapper houseTenantMapper;
 
     @PostMapping
-    public ResponseEntity addHouse(@RequestBody House house) {
+    public ResponseEntity addHouse(@RequestParam("file") MultipartFile file, @RequestBody House house) throws IOException {
         house.setHouseStatus(1);
-        houseService.addHouse(house);
+        houseService.addHouse(file, house);
         List<House> houseIdByLandlordId = houseService.getHouseIdByLandlordId((long) house.getLandlordId());
         House house1 = houseIdByLandlordId.get(houseIdByLandlordId.size() - 1);
         houseTenantMapper.insertHouseTenant((long) house1.getHouseId(), (long) house.getLandlordId());
@@ -115,5 +118,14 @@ public class HouseController {
     }
 
 
+    @GetMapping("/photo/{houseId}")
+    public ResponseEntity<Resource> downloadHousePhoto(@PathVariable int houseId) {
+        try {
+            Resource photo = houseService.downloadHousePhoto(houseId);
+            return ResponseEntity.ok(photo);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }
 

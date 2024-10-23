@@ -2,19 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="SplitMate.mapper.HouseMapper">
 
-    <insert id="insertHouse" parameterType="SplitMate.domain.House">
-        INSERT INTO house_info (house_status, landlord_id, landlord_name, address, name)
-        VALUES (#{houseStatus}, #{landlordId}, #{landlordName}, #{Address}, #{Name});
+    <insert id="insertHouse" parameterType="SplitMate.domain.House" useGeneratedKeys="true" keyProperty="houseId">
+        INSERT INTO house_info (house_status, landlord_id, landlord_name, address, name, house_image_path)
+        VALUES (#{houseStatus}, #{landlordId}, #{landlordName}, #{Address}, #{Name}, #{houseImagePath});
     </insert>
 
     <update id="updateHouse" parameterType="SplitMate.domain.House">
         UPDATE house_info
-        SET house_status = #{houseStatus},
-            landlord_id = #{landlordId},
-            landlord_name = #{landlordName},
-            address = #{Address},
-            name = #{Name}
-        WHERE house_id = #{houseId};
+        <set>
+            <if test="houseStatus != null">house_status = #{houseStatus},</if>
+            <if test="landlordId != null">landlord_id = #{landlordId},</if>
+            <if test="landlordName != null">landlord_name = #{landlordName},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="name != null">name = #{name}</if>
+            <if test="houseImagePath != null">house_image_path = #{houseImagePath}</if>
+        </set>
+        WHERE house_id = #{houseId}
     </update>
 
     <delete id="deleteHouse" parameterType="int">

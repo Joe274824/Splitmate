@@ -1,10 +1,13 @@
 package SplitMate.controller;
 
 import SplitMate.domain.User;
+import SplitMate.service.MinioService;
 import SplitMate.service.UserService;
 import SplitMate.util.JwtUtil;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,8 +15,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -24,6 +27,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private MinioService minioService;
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -70,36 +75,43 @@ public class UserController {
         photos.add(photo2);
         photos.add(photo3);
         System.out.println("Number of photos: " + photos.size());
-        // 检查用户是否存在
         User user = userService.getUserByUsername(username);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
         }
         Long userId = user.getId();
-        // 检查照片数量是否为 3
-        if (photos.size() != 3) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload exactly 3 photos");
-        }
-
-        // 处理文件上传
         try {
             for (MultipartFile photo : photos) {
                 if (photo.isEmpty()) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("One of the photos is empty");
                 }
-
-                System.out.println("Photo Original Filename: " + photo.getOriginalFilename());
             }
-
-            // 保存照片
             userService.savePhotos(userId, photos);
-
             return ResponseEntity.status(HttpStatus.CREATED).body("Photos uploaded successfully");
 
         } catch (Exception e) {
-            // 捕获所有异常
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to upload photos: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/users/{userId}/photo")
+    public ResponseEntity<List<Resource>> downloadUserPhoto(@PathVariable Long userId) {
+        String bucketName = "user-images";
+        try {
+            List<String> photoFiles = minioService.listUserPhotos(bucketName, userId);
+            List<Resource> resources = new ArrayList<>();
+            for (String fileName : photoFiles) {
+                InputStream photoStream = minioService.downloadFile(bucketName, fileName);
+                if (photoStream != null) {
+                    Resource resource = new InputStreamResource(photoStream);
+                    resources.add(resource);
+                }
+            }
+            return ResponseEntity.ok(resources);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 

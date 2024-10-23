@@ -17,6 +17,7 @@ public class House {
     private String landlordName;
     private String Address;
     private String Name;
+    private String houseImagePath;
 
     public int getHouseId() {
         return houseId;
@@ -64,6 +65,14 @@ public class House {
 
     public void setName(String name) {
         Name = name;
+    }
+
+    public String getHouseImagePath() {
+        return houseImagePath;
+    }
+
+    public void setHouseImagePath(String houseImagePath) {
+        this.houseImagePath = houseImagePath;
     }
 }
 

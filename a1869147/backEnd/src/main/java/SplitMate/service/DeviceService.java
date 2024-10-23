@@ -5,6 +5,7 @@ import SplitMate.domain.DeviceStatus;
 import SplitMate.mapper.DeviceMapper;
 import SplitMate.mapper.DeviceStatusMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
@@ -15,8 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.List;
+
+import static org.springframework.http.MediaTypeFactory.getMediaType;
 
 @Service
 public class DeviceService {
@@ -26,6 +30,11 @@ public class DeviceService {
 
     @Autowired
     private DeviceStatusMapper deviceStatusMapper;
+
+    @Autowired
+    private MinioService minioService;
+
+    private static final String BUCKET_NAME = "device-images";
 
     public List<Device> getAllDevices() {
         return deviceMapper.getAllDevices();
@@ -59,35 +68,16 @@ public class DeviceService {
     }
 
     public void saveDevicePhoto(Long deviceId, MultipartFile photo) throws IOException {
-        // 获取临时目录并构造绝对路径
-        String tempDir = System.getProperty("java.io.tmpdir");
-        String directoryPath = tempDir + "user-photos/" + deviceId;
-        File directory = new File(directoryPath);
-
-        if (!directory.exists()) {
-            boolean dirCreated = directory.mkdirs(); // 使用mkdirs()确保创建多级目录
-            if (!dirCreated) {
-                throw new IOException("Failed to create directory: " + directoryPath);
-            }
+        String fileName = "device_" + deviceId + (photo.getOriginalFilename());
+        try (InputStream inputStream = photo.getInputStream()) {
+            minioService.uploadFile(BUCKET_NAME, fileName, inputStream, photo.getContentType(), photo.getSize());
+        } catch (Exception e) {
+            throw new IOException("File upload failed: " + e.getMessage(), e);
         }
 
-        String fileName = "device_photo" + getFileExtension(photo.getOriginalFilename());
-        File destinationFile = new File(directory, fileName);
-
-        // 记录调试信息
-        System.out.println("Attempting to save file to: " + destinationFile.getAbsolutePath());
-        System.out.println("Uploaded file size: " + photo.getSize() + " bytes");
-
-        try {
-            photo.transferTo(destinationFile);
-        } catch (IllegalStateException e) {
-            throw new IOException("File transfer failed: " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new IOException("I/O error occurred while saving file: " + e.getMessage(), e);
-        }
         Device device = new Device();
         device.setId(deviceId);
-        device.setImagePath(directoryPath + "/" + fileName);
+        device.setImagePath("minio_bucket:" + BUCKET_NAME + "/" + fileName); // 更新为MinIO的URL
         deviceMapper.updateDevice(device);
     }
 
@@ -96,24 +86,16 @@ public class DeviceService {
         if (device == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        File photoFile = new File(device.getImagePath());
 
-        // 检查文件是否存在
-        if (!photoFile.exists()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-
+        String objectName = device.getImagePath().substring(device.getImagePath().indexOf("/") + 1);
+        MediaType mediaType = minioService.getMediaType(objectName);
         try {
-            // 将文件作为资源返回
-            Resource resource = new UrlResource(photoFile.toURI());
-            if (resource.exists() || resource.isReadable()) {
-                return ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_JPEG)
-                        .body(resource);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-            }
-        } catch (MalformedURLException e) {
+            InputStream inputStream = minioService.downloadFile(BUCKET_NAME, objectName);
+            Resource resource = new InputStreamResource(inputStream);
+            return ResponseEntity.ok()
+                    .contentType(mediaType) // 可以根据实际的内容类型进行调整
+                    .body(resource);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

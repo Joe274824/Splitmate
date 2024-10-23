@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class UserService {
@@ -28,6 +29,9 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private MinioService minioService;
 
     public List<User> getAllUsers() {
         return userMapper.getAllUsers();
@@ -67,23 +71,19 @@ public class UserService {
     }
 
     public void savePhotos(Long userId, List<MultipartFile> photos) throws IOException {
-        // 获取临时目录并构造绝对路径
-        String tempDir = System.getProperty("java.io.tmpdir");
-        String directoryPath = tempDir + "device-photos/" + userId;
-        File directory = new File(directoryPath);
-
-        if (!directory.exists()) {
-            boolean dirCreated = directory.mkdirs(); // 使用mkdirs()确保创建多级目录
-            if (!dirCreated) {
-                throw new IOException("Failed to create directory: " + directoryPath);
-            }
-        }
-
+        String bucketName = "user-images";
         for (int i = 0; i < photos.size(); i++) {
             MultipartFile photo = photos.get(i);
-            String fileName = "photo" + (i + 1) + getFileExtension(photo.getOriginalFilename());
-            File destinationFile = new File(directory, fileName);
-            photo.transferTo(destinationFile);
+
+            // 生成文件名
+            String fileName = "user_photo_" + userId + "_" + (i + 1) + getFileExtension(Objects.requireNonNull(photo.getOriginalFilename()));
+            String contentType = minioService.getMediaType(fileName).toString();
+            // 上传到 Minio
+            try {
+                minioService.uploadFile(bucketName, fileName, photo.getInputStream(), contentType, photo.getSize());
+            } catch (Exception e) {
+                throw new IOException("Failed to upload photo: " + e.getMessage(), e);
+            }
         }
     }
 
@@ -94,7 +94,7 @@ public class UserService {
         }
 
         String token = jwtUtil.generateToken(user.getUsername());
-        String resetUrl = "http://120.26.0.31:8080/users/reset-password?token=" + token;
+        String resetUrl = "http://13.55.123.136:8080/users/reset-password?token=" + token;
 
         // 发送邮件
         SimpleMailMessage message = new SimpleMailMessage();

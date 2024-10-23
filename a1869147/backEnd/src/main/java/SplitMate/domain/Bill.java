@@ -15,9 +15,27 @@ public class Bill {
 
     private Long userId;
     private Long houseId;
+    private String category;
     private String fileName;
     private String filePath;
     private Timestamp uploadTime;
+    private String billDate;
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getBillDate() {
+        return billDate;
+    }
+
+    public void setBillDate(String billDate) {
+        this.billDate = billDate;
+    }
 
     public Timestamp getUploadTime() {
         return uploadTime;

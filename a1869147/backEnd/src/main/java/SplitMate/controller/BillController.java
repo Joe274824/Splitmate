@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/bills")
@@ -39,12 +40,16 @@ public class BillController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadBill(@RequestParam("file") MultipartFile file,
-                                             @RequestParam("userId") Long userId,
-                                             @RequestParam("houseId") Long houseId) {
+                                             @RequestBody Bill bill) {
+        String filename = file.getOriginalFilename();
+        if (!Objects.requireNonNull(filename).isEmpty() && !filename.substring(file.getOriginalFilename().lastIndexOf(".")).equalsIgnoreCase("pdf")) {
+            ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Only allows upload pdf bills");
+        }
         // 检查用户是否为主租户
-        if (billService.isMainTenant(userId)) {
+        if (billService.isMainTenant(bill.getUserId())) {
             try {
-                billService.saveBill(file, userId, houseId);
+                billService.saveBill(file, bill);
                 return ResponseEntity.ok("Bill uploaded successfully");
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
