@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -114,5 +116,18 @@ public class DeviceUsageController {
         }
         return ResponseEntity.ok(AllUsage);
     }
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadUsageFile(@RequestParam("file") MultipartFile file) {
+        try {
+            // 调用Service层处理文件解析和保存
+            deviceUsageService.processFile(file);
+            return ResponseEntity.ok("File processed successfully.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process file.");
+        }
+    }
+
+
 
 }

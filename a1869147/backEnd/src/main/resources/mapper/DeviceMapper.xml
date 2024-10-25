@@ -10,10 +10,11 @@
         <result property="category" column="category"/>
         <result property="imagePath" column="image_path"/>
         <result property="BLEAddress" column="BLE_address"/>
+        <result property="houseId" column="house_id"/>
     </resultMap>
 
-    <select id="getAllDevices" resultMap="DeviceResultMap">
-        SELECT * FROM device
+    <select id="getAllDevices" parameterType="Long" resultMap="DeviceResultMap">
+        SELECT * FROM device where house_id = #{houseId}
     </select>
 
     <select id="getDeviceById" parameterType="Long" resultMap="DeviceResultMap">
@@ -21,8 +22,8 @@
     </select>
 
     <insert id="insertDevice" parameterType="SplitMate.domain.Device" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO device (name, power, category, BLE_address, image_path)
-        VALUES (#{name}, #{power}, #{category}, #{BLEAddress}, #{imagePath})
+        INSERT INTO device (name, power, category, BLE_address, image_path, house_id)
+        VALUES (#{name}, #{power}, #{category}, #{BLEAddress}, #{imagePath}, #{houseId})
     </insert>
 
     <update id="updateDevice" parameterType="SplitMate.domain.Device">
@@ -44,7 +45,7 @@
         SELECT * FROM device WHERE name = #{name}
     </select>
     <select id="getDeviceByBLEAddress" resultMap="DeviceResultMap">
-        SELECT * FROM device WHERE BLE_address = #{BLEAddress}
+        SELECT * FROM device WHERE BLE_address = #{BLEAddress} LIMIT 1
     </select>
 
 

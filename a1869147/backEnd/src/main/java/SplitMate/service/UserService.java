@@ -48,7 +48,7 @@ public class UserService {
     }
 
     public void updateUser(User user) {
-        if (!user.getPassword().isEmpty()) {
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         userMapper.updateUser(user);

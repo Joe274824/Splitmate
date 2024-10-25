@@ -36,8 +36,8 @@ public class DeviceService {
 
     private static final String BUCKET_NAME = "device-images";
 
-    public List<Device> getAllDevices() {
-        return deviceMapper.getAllDevices();
+    public List<Device> getAllDevices(Long houseId) {
+        return deviceMapper.getAllDevices(houseId);
     }
 
     public Device getDeviceById(Long id) {

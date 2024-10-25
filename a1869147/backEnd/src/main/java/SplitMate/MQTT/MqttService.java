@@ -18,10 +18,9 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component
 public class MqttService implements MqttCallback {
 
-    private static final String BROKER_URL = "tcp://192.168.50.227:1883";
+    private static final String BROKER_URL = "tcp://16.51.50.23:1883";
     private static final String CLIENT_ID = "java_client";
     private static final String TOPIC_USAGE = "usage/#";
-    private static final String TOPIC_BLUETOOTH = "";
     private static final String username = "guanqiao";
     private static final String password = "77136658Rm.";
     private final SensorDataService sensorDataService;
@@ -54,38 +53,6 @@ public class MqttService implements MqttCallback {
             client.subscribe(TOPIC_USAGE, (topic, message) -> {
                 String payload = new String(message.getPayload());
                 System.out.println("Received message: " + payload);
-                new Thread(() -> {
-                    AtomicReference<String> bluetoothMac = null;
-
-                    try {
-                        // 启动蓝牙 MAC 地址接收的主题
-                        client.subscribe(TOPIC_BLUETOOTH, (btTopic, btMessage) -> {
-                            bluetoothMac.set(new String(btMessage.getPayload()));
-                            System.out.println("Received Bluetooth MAC: " + bluetoothMac);
-                        });
-
-                        // 等待 3 秒以接收蓝牙信息
-                        Thread.sleep(3000);
-
-                        if (bluetoothMac.get() != null) {
-                            // 如果接收到蓝牙信息，检查数据库中是否有对应的用户
-                            Bluetooth bluetooth = bluetoothMapper.getBluetoothByMacAddress(bluetoothMac.get());
-                            if (bluetooth != null) {
-                                // 如果找到蓝牙用户，保存设备使用记录
-                                System.out.println("Bluetooth information found. Using Bluetooth info for record.");
-                                handleBluetoothMessage(payload, bluetooth);
-                            } else {
-                                System.out.println("Bluetooth not found in the database. Using MQTT message.");
-                            }
-                        } else {
-                            // 如果没有接收到蓝牙信息，使用接收到的 MQTT 信息
-                            System.out.println("No Bluetooth information received. Using MQTT message.");
-                            handleMessage(payload);
-                        }
-                    } catch (InterruptedException | MqttException e) {
-                        e.printStackTrace();
-                    }
-                }).start();
             });
 
         } catch (MqttException e) {

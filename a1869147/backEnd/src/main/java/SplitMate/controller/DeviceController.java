@@ -24,9 +24,9 @@ public class DeviceController {
     @Autowired
     private DeviceService deviceService;
 
-    @GetMapping
-    public List<Device> getAllDevices() {
-        return deviceService.getAllDevices();
+    @GetMapping("/house/{houseId}")
+    public List<Device> getAllDevices(@PathVariable Long houseId) {
+        return deviceService.getAllDevices(houseId);
     }
 
     @GetMapping("/{id}")

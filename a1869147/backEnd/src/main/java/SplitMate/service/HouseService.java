@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,9 +35,12 @@ public class HouseService {
     @Autowired
     private MinioService minioService;
 
-    public void addHouse(MultipartFile file, House house) throws IOException {
+    public void addHouse(House house) {
         houseMapper.insertHouse(house);
-        int houseId = house.getHouseId();
+    }
+
+    public void uploadHousePhoto(MultipartFile file, int houseId) throws IOException {
+        House house = new House();
         // 2. 后续处理逻辑（生成文件名、上传到 Minio 等）
         String originalFileName = file.getOriginalFilename();
         String fileExtension = deviceService.getFileExtension(Objects.requireNonNull(originalFileName));
@@ -57,8 +59,10 @@ public class HouseService {
 
         // 5. 更新房屋信息中的 imagePath
         String imagePath = "house-images/" + fileName;
+        house.setHouseId(houseId);
         house.setHouseImagePath(imagePath);
         houseMapper.updateHouse(house);
+
     }
 
     public void updateHouse(House house) {

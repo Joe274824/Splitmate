@@ -1,9 +1,6 @@
 package SplitMate.controller;
 
-import SplitMate.domain.House;
-import SplitMate.domain.RentalApplication;
-import SplitMate.domain.RentalApplicationWithUserDTO;
-import SplitMate.domain.User;
+import SplitMate.domain.*;
 import SplitMate.mapper.HouseTenantMapper;
 import SplitMate.service.HouseService;
 import SplitMate.service.RentalApplicationService;
@@ -84,6 +81,12 @@ public class RentalApplicationController {
     public ResponseEntity updateRentalApplication(@RequestBody RentalApplication rentalApplication) {
         if (rentalApplication.getStatus() == 1) {
             rentalApplicationService.updateApplicationStatus(rentalApplication.getId(), rentalApplication.getStatus());
+            List<HouseTenant> tenantsByHouseId = houseTenantMapper.getTenantsByHouseId(rentalApplication.getHouseId().intValue());
+            for (HouseTenant tenant : tenantsByHouseId) {
+                if (tenant.getUserId() == rentalApplication.getUserId()) {
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body("User already has this application");
+                }
+            }
             houseTenantMapper.insertHouseTenant(rentalApplication.getHouseId(), rentalApplication.getUserId());
             return ResponseEntity.ok(HttpStatus.OK);
         } else if (rentalApplication.getStatus() == 2) {

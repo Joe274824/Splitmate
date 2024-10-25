@@ -52,4 +52,8 @@
         SELECT * FROM user WHERE email = #{email}
     </select>
 
+    <select id="findByPhone" parameterType="String" resultMap="UserResultMap">
+        SELECT * FROM user WHERE user_phone_id = #{userPhoneId} LIMIT 1
+    </select>
+
 </mapper>

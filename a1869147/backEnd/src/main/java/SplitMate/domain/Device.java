@@ -17,6 +17,8 @@ public class Device {
 
     private String imagePath;
 
+    private Long houseId;
+
     public String getImagePath() {
         return imagePath;
     }
@@ -64,5 +66,13 @@ public class Device {
 
     public void setPower(int power) {
         this.power = power;
+    }
+
+    public Long getHouseId() {
+        return houseId;
+    }
+
+    public void setHouseId(Long houseId) {
+        this.houseId = houseId;
     }
 }

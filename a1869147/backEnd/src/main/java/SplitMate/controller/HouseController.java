@@ -35,12 +35,24 @@ public class HouseController {
     private HouseTenantMapper houseTenantMapper;
 
     @PostMapping
-    public ResponseEntity addHouse(@RequestParam("file") MultipartFile file, @RequestBody House house) throws IOException {
+    public ResponseEntity addHouse(@RequestBody House house) {
         house.setHouseStatus(1);
-        houseService.addHouse(file, house);
+        houseService.addHouse(house);
         List<House> houseIdByLandlordId = houseService.getHouseIdByLandlordId((long) house.getLandlordId());
         House house1 = houseIdByLandlordId.get(houseIdByLandlordId.size() - 1);
         houseTenantMapper.insertHouseTenant((long) house1.getHouseId(), (long) house.getLandlordId());
+        return ResponseEntity.ok(HttpStatus.ACCEPTED);
+    }
+
+    @PostMapping("/uploadHP")
+    public ResponseEntity uploadHP(@RequestParam("file") MultipartFile file,
+                                   @RequestParam("houseId") int houseId) throws IOException {
+        try {
+            houseService.uploadHousePhoto(file, houseId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
         return ResponseEntity.ok(HttpStatus.ACCEPTED);
     }
 
