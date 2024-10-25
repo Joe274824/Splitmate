@@ -40,7 +40,7 @@ public class HouseService {
     }
 
     public void uploadHousePhoto(MultipartFile file, int houseId) throws IOException {
-        House house = new House();
+        House house = houseMapper.selectHouseById(houseId);
         // 2. 后续处理逻辑（生成文件名、上传到 Minio 等）
         String originalFileName = file.getOriginalFilename();
         String fileExtension = deviceService.getFileExtension(Objects.requireNonNull(originalFileName));
@@ -59,7 +59,6 @@ public class HouseService {
 
         // 5. 更新房屋信息中的 imagePath
         String imagePath = "house-images/" + fileName;
-        house.setHouseId(houseId);
         house.setHouseImagePath(imagePath);
         houseMapper.updateHouse(house);
 

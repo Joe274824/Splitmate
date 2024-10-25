@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component
 public class MqttService implements MqttCallback {
 
-    private static final String BROKER_URL = "tcp://16.51.50.23:1883";
+    private static final String BROKER_URL = "tcp://16.51.50.230:1883";
     private static final String CLIENT_ID = "java_client";
     private static final String TOPIC_USAGE = "usage/#";
     private static final String username = "guanqiao";

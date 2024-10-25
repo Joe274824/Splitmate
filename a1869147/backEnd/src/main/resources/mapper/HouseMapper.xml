@@ -14,7 +14,7 @@
             <if test="landlordId != null">landlord_id = #{landlordId},</if>
             <if test="landlordName != null">landlord_name = #{landlordName},</if>
             <if test="address != null">address = #{address},</if>
-            <if test="name != null">name = #{name}</if>
+            <if test="name != null">name = #{name},</if>
             <if test="houseImagePath != null">house_image_path = #{houseImagePath}</if>
         </set>
         WHERE house_id = #{houseId}
