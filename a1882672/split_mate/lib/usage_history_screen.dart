@@ -40,7 +40,7 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
 
   void _fetchUsageHistory() async {
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/deviceUsages/username'),
+      Uri.parse('http://13.55.123.136:8080/deviceUsages/username'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -86,7 +86,7 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
 
   void _fetchDeviceNames() async {
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/devices'),
+      Uri.parse('http://13.55.123.136:8080/devices'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -217,45 +217,63 @@ class _UsageHistoryScreenState extends State<UsageHistoryScreen> {
             ],
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _getCurrentPageRecords().length,
-              itemBuilder: (context, index) {
-                UsageData data = _getCurrentPageRecords()[index];
-                return ListTile(
-                  title: Text(
-                    '${data.date} - ${data.startTime}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+            child: _getCurrentPageRecords().isEmpty
+                ? Center(
+                    child: Text(
+                      'No records found for the selected criteria.',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _getCurrentPageRecords().length,
+                    itemBuilder: (context, index) {
+                      UsageData data = _getCurrentPageRecords()[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${data.date} - ${data.startTime}',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 8),
+                              Text('Device: ${data.device}'),
+                              Text('Duration: ${data.duration}'),
+                              Text('Category: ${data.category}'),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  subtitle: Text(
-                    'Device: ${data.device}\nDuration: ${data.duration}\nCategory: ${data.category}', // Updated to show category
-                    style: TextStyle(fontSize: 16),
-                  ),
-                );
-              },
-            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ElevatedButton(
+              FloatingActionButton(
+                heroTag: 'previousPage',
                 onPressed: _currentPage > 0
                     ? () {
-                  setState(() {
-                    _currentPage--;
-                  });
-                }
+                        setState(() {
+                          _currentPage--;
+                        });
+                      }
                     : null,
-                child: Text('Previous'),
+                child: Icon(Icons.arrow_back),
               ),
-              ElevatedButton(
+              FloatingActionButton(
+                heroTag: 'nextPage',
                 onPressed: _currentPage < (_usageHistory.length / _recordsPerPage).ceil() - 1
                     ? () {
-                  setState(() {
-                    _currentPage++;
-                  });
-                }
+                        setState(() {
+                          _currentPage++;
+                        });
+                      }
                     : null,
-                child: Text('Next'),
+                child: Icon(Icons.arrow_forward),
               ),
             ],
           ),

@@ -30,10 +30,52 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
     super.initState();
     _fetchProperties();
   }
+  Future<void> _handleApplication(int applicationId, bool isAccepted) async {
+    // Fetch the rental application details by ID
+    final getResponse = await http.get(
+      Uri.parse('http://13.55.123.136:8080/application/$applicationId'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': '*/*',
+      },
+    );
+
+    if (getResponse.statusCode == 200) {
+      final application = jsonDecode(getResponse.body);
+
+      // Remove 'applicationDate' from response body
+      application.remove('applicationDate');
+
+      // Set the application status: 1 for accept, 2 for decline
+      application['status'] = isAccepted ? 1 : 2;
+
+      // Send updated application to the server
+      final postResponse = await http.post(
+        Uri.parse('http://13.55.123.136:8080/application'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(application),
+      );
+
+      if (postResponse.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Application processed successfully')));
+        _fetchApplications(_selectedProperty!); // Refresh the application list after processing
+      } else {
+        print('Failed to update application');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update application')));
+      }
+    } else {
+      print('Failed to fetch application details');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to fetch application details')));
+    }
+  }
 
   Future<void> _fetchProperties() async {
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/api/house/houses'),
+      Uri.parse('http://13.55.123.136:8080/api/house/houses'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -59,7 +101,7 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
     });
 
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/api/house/tenants/$houseId'),
+      Uri.parse('http://13.55.123.136:8080/api/house/tenants/$houseId'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -79,7 +121,7 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
 
   Future<void> _fetchApplications(String houseId) async {
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/application/house/$houseId'),
+      Uri.parse('http://13.55.123.136:8080/application/house/$houseId'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -104,7 +146,7 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
 
   Future<void> _removeTenant(int tenantId, String houseId) async {
     final response = await http.delete(
-      Uri.parse('http://120.26.0.31:8080/api/house/tenants/$houseId/$tenantId'),
+      Uri.parse('http://13.55.123.136:8080/api/house/tenants/$houseId/$tenantId'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -136,7 +178,7 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
 
           var request = http.MultipartRequest(
             'POST',
-            Uri.parse('http://120.26.0.31:8080/bills/upload?houseId=$houseId&userId=$userId'),
+            Uri.parse('http://13.55.123.136:8080/bills/upload?houseId=$houseId&userId=$userId'),
           );
           request.headers['Authorization'] = 'Bearer ${widget.token}';
           request.headers['accept'] = '*/*';
@@ -326,13 +368,14 @@ class _HouseDashboardScreenState extends State<HouseDashboardScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () => _handleApplication(application['rentalApplication']['id'], true),
                                   child: Text('Accept'),
                                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                                 ),
                                 SizedBox(width: 10),
                                 ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () => _handleApplication(application['rentalApplication']['id'], false),
+
                                   child: Text('Decline'),
                                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                                 ),

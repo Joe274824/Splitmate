@@ -35,7 +35,7 @@ class _MonthlyBillsScreenState extends State<MonthlyBillsScreen> {
     for (int i = 2; i >= 0; i--) {
       DateTime targetMonth = DateTime(now.year, now.month - i);
       final response = await http.get(
-        Uri.parse('http://120.26.0.31:8080/deviceUsages/userOneMonth?month=${targetMonth.month}&year=${targetMonth.year}'),
+        Uri.parse('http://13.55.123.136:8080/deviceUsages/userOneMonth?month=${targetMonth.month}&year=${targetMonth.year}'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': '*/*',

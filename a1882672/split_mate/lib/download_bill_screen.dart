@@ -24,7 +24,7 @@ class _DownloadBillScreenState extends State<DownloadBillScreen> {
   }
 
   Future<void> _fetchBills() async {
-    final url = 'http://120.26.0.31:8080/bills';
+    final url = 'http://13.55.123.136:8080/bills';
     print('Sending GET request to: $url');
 
     final response = await http.get(
@@ -50,7 +50,7 @@ class _DownloadBillScreenState extends State<DownloadBillScreen> {
   }
 
   Future<void> _downloadBill(int billId, String fileName) async {
-    final url = 'http://120.26.0.31:8080/bills/download/$billId';
+    final url = 'http://13.55.123.136:8080/bills/download/$billId';
     print('Sending GET request to: $url');
 
     final response = await http.get(

@@ -37,7 +37,7 @@ class _TenantsUsageScreenState extends State<TenantsUsageScreen> {
   Future<void> _fetchUsageData() async {
     try {
       final response = await http.get(
-        Uri.parse('http://120.26.0.31:8080/deviceUsages/AllUsageForMT?month=$selectedMonthNumber&year=$selectedYear'),
+        Uri.parse('http://13.55.123.136:8080/deviceUsages/AllUsageForMT?month=$selectedMonthNumber&year=$selectedYear'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': '*/*',
