@@ -1,74 +1,124 @@
+import os
 import cv2
+import torch
+import numpy as np
+from facenet_pytorch import InceptionResnetV1, MTCNN
+from PIL import Image
 import paho.mqtt.client as mqtt
 import base64
-import numpy as np
-import ssl
-import os
 import json
 import mediapipe as mp
-from datetime import datetime
 import math
-import face_recognition
+from datetime import datetime
 
-broker_address = "10.210.65.16"
+broker_address = "0.0.0.0"
 port = 1883
 topic = "video/stream"
 username = "guanqiao"
 password = "77136658Rm."
 
-names = {1: 'guanqiao',2:'xuanqiao'}
-recognizer = cv2.face.LBPHFaceRecognizer_create()
-recognizer.read('/home/hgq/Projects/mobile/trainer.yml')
+aws_broker_address = "16.51.50.230"
+aws_port = 1883
+aws_username = "guanqiao"
+aws_password = "77136658Rm."
 
-face_detector = cv2.CascadeClassifier("/home/hgq/Projects/mobile/haarcascade_frontalface_default.xml")
+# FaceNet and MTCNN initialization
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+mtcnn = MTCNN(keep_all=True, device=device)  
+facenet = InceptionResnetV1(pretrained='vggface2').eval().to(device) 
+faces_dir = '/home/hgq/Projects/mobile/face_data/'
+names = {}
+face_encodings = [] 
 
-template_dir = '/home/hgq/Projects/mobile/switch_recog/switches'
 mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(static_image_mode=False, max_num_hands=6, min_detection_confidence=0.5)
+hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
 mp_drawing = mp.solutions.drawing_utils
 
-first_frame_switch_data = None
-
-
-def load_known_faces_from_directory(directory):
-    for filename in os.listdir(directory):
-        if filename.endswith(".jpg") or filename.endswith(".png"):
-            name = os.path.splitext(filename)[0]
-            file_path = os.path.join(directory, filename)
-            image = face_recognition.load_image_file(file_path)
-            encodings = face_recognition.face_encodings(image)
-            
-            if encodings:
-                face_encoding = encodings[0]
-                known_face_encodings.append(face_encoding)
-                known_face_names.append(name)
-                print(f"Loaded {name}'s face encoding from {filename}")
-            else:
-                print(f"No face found in {filename}")
-
+def load_faces_from_dir():
+    current_id = 0
+    for person_name in os.listdir(faces_dir):
+        person_dir = os.path.join(faces_dir, person_name)
+        if os.path.isdir(person_dir):
+            names[current_id] = person_name
+            for image_file in os.listdir(person_dir):
+                image_path = os.path.join(person_dir, image_file)
+                img = Image.open(image_path)
+                
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                
+                faces, probs = mtcnn(img, return_prob=True) 
+                if faces is not None:
+                    for face, prob in zip(faces, probs):
+                        if prob > 0.90:
+                            face_embedding = facenet(face.unsqueeze(0).to(device))
+                            face_encodings.append((current_id, face_embedding))
+            current_id += 1
+    print(f"Loaded faces for {len(names)} individuals.")
 def face_detect_and_recognize(img):
-    rgb_img = img[:, :, ::-1]
-    face_locations = face_recognition.face_locations(rgb_img)
-    face_encodings = face_recognition.face_encodings(rgb_img, face_locations)
-
+    img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    faces, probs = mtcnn(img_pil, return_prob=True)
     recognized_faces = []
 
-    for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-        name = "Unknown"
+    if faces is not None:
+        for i, face in enumerate(faces):
+            if probs[i] > 0.90: 
+                face_embedding = facenet(face.unsqueeze(0).to(device))
 
-        face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-        best_match_index = np.argmin(face_distances)
-        if matches[best_match_index]:
-            name = known_face_names[best_match_index]
-        cv2.rectangle(img, (left, top), (right, bottom), (255, 0, 0), 2)
-        cv2.putText(img, name, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-        
-        recognized_faces.append((name, (left, top, right - left, bottom - top)))
+                min_distance = float('inf')
+                best_match = "Unknown"
+                for id, known_embedding in face_encodings:
+                    dist = torch.norm(face_embedding - known_embedding)
+                    if dist < min_distance:
+                        min_distance = dist
+                        best_match = names.get(id, "Unknown")
 
-        print(f"Recognized {name}")
+                if min_distance > 0.9:
+                    best_match = "Unknown"
+
+                x1, y1, x2, y2 = map(int, mtcnn.detect(img_pil)[0][i])
+                recognized_faces.append((best_match, (x1, y1, x2, y2)))
+
+                cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                cv2.putText(img, f'{best_match}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+                print(f"Recognized {best_match} with distance {min_distance:.2f}")
 
     return recognized_faces
+
+template_dir = '/home/hgq/Projects/mobile/switch_recog/switches'
+def switch_recognition(image):
+    all_switch_data = []
+
+    for filename in os.listdir(template_dir):
+        if filename.endswith('.png'):
+            switch_id, switch_name, category, weight_with_ext = filename.split('_')
+            weight = os.path.splitext(weight_with_ext)[0]
+            template = cv2.imread(os.path.join(template_dir, filename), cv2.IMREAD_COLOR)
+            template_height, template_width = template.shape[:2]
+            result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+
+            switch_x1, switch_y1 = max_loc
+            switch_x2, switch_y2 = switch_x1 + template_width, switch_y1 + template_height
+
+            cv2.rectangle(image, (switch_x1, switch_y1), (switch_x2, switch_y2), (0, 255, 0), 2)
+
+            switch_data = {
+                "switch_id": switch_id,
+                "switch_name": switch_name,
+                "category": category,
+                "weight": weight,
+                "position": {
+                    "x1": switch_x1,
+                    "y1": switch_y1,
+                    "x2": switch_x2,
+                    "y2": switch_y2
+                },
+                "published": False 
+            }
+            all_switch_data.append(switch_data)
+
+    return all_switch_data
 
 def hand_detect_and_switch_check(img, switch_data):
     image_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -116,119 +166,103 @@ def associate_hand_to_nearest_face(hand_pos, recognized_faces):
 
     return closest_name
 
-def switch_recognition(image):
-    all_switch_data = []
+last_frame_sequence = -1
+first_frame_switch_data = None
+import json
+import base64
+import cv2
+import numpy as np
+from datetime import datetime
 
-    for filename in os.listdir(template_dir):
-        if filename.endswith('.png'):
-            switch_id, switch_name, category, weight_with_ext = filename.split('_')
-            weight = os.path.splitext(weight_with_ext)[0]
-            template = cv2.imread(os.path.join(template_dir, filename), cv2.IMREAD_COLOR)
-            template_height, template_width = template.shape[:2]
-            result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
-            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-
-            switch_x1, switch_y1 = max_loc
-            switch_x2, switch_y2 = switch_x1 + template_width, switch_y1 + template_height
-
-            cv2.rectangle(image, (switch_x1, switch_y1), (switch_x2, switch_y2), (0, 255, 0), 2)
-
-            switch_data = {
-                "switch_id": switch_id,
-                "switch_name": switch_name,
-                "category": category,
-                "weight": weight,
-                "position": {
-                    "x1": switch_x1,
-                    "y1": switch_y1,
-                    "x2": switch_x2,
-                    "y2": switch_y2
-                },
-                "published": False 
-            }
-            all_switch_data.append(switch_data)
-
-    return all_switch_data
+last_frame_sequence = -1
+first_frame_switch_data = None 
 
 def on_message(client, userdata, message):
-    global first_frame_switch_data
-
+    global last_frame_sequence, first_frame_switch_data
     print("Received a new message from topic:", message.topic)
-    message_str = message.payload.decode('utf-8')
 
-    frames_base64 = message_str.split('|')
+    message_json = json.loads(message.payload.decode('utf-8'))
+    frames_data = message_json.get("frames", [])
+    sequence_number = message_json.get("sequence", -1) 
+    if sequence_number > last_frame_sequence or sequence_number == -1:
+        last_frame_sequence = sequence_number if sequence_number != -1 else last_frame_sequence  
 
-    frames = []
-    for frame_base64 in frames_base64:
-        try:
-            jpg_original = base64.b64decode(frame_base64)
+        frames = []
+        for frame_data in frames_data:
+            jpg_original = base64.b64decode(frame_data)
             np_arr = np.frombuffer(jpg_original, dtype=np.uint8)
             img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
             frames.append(img)
-        except Exception as e:
-            print(f"Error decoding frame: {e}")
-            continue
 
-    for img in frames:
-        recognized_faces = face_detect_and_recognize(img)
+        for i, img in enumerate(frames):
+            print(f"Processing frame {i+1}")
+            recognized_faces = face_detect_and_recognize(img)
 
-        if first_frame_switch_data is None:
-            first_frame_switch_data = switch_recognition(img)
-            print("Switches recognized in the first frame")
+            if first_frame_switch_data is None:
+                first_frame_switch_data = switch_recognition(img) 
+                print("Switches recognized in the first frame")
 
-        switch_touched, touch_position = hand_detect_and_switch_check(img, first_frame_switch_data)
+            switch_touched, touch_position = hand_detect_and_switch_check(img, first_frame_switch_data)
 
-        for switch in first_frame_switch_data:
-            switch_name = switch["switch_name"]
-            position = switch["position"]
-            switch_x1, switch_y1 = position["x1"], position["y1"]
-            switch_x2, switch_y2 = position["x2"], position["y2"]
-            cv2.rectangle(img, (switch_x1, switch_y1), (switch_x2, switch_y2), (0, 255, 0), 2)
-            cv2.putText(img, f'Switch: {switch_name}', (switch_x1, switch_y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-
-        if switch_touched:
-            responsible_name = associate_hand_to_nearest_face(touch_position, recognized_faces)
-            print(f"Switch touched by {responsible_name}")
-            cv2.putText(img, f"Switch touched by {responsible_name}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             for switch in first_frame_switch_data:
-                switch_x1, switch_y1 = switch["position"]["x1"], switch["position"]["y1"]
-                switch_x2, switch_y2 = switch["position"]["x2"], switch["position"]["y2"]
+                switch_name = switch["switch_name"]
+                position = switch["position"]
+                switch_x1, switch_y1 = position["x1"], position["y1"]
+                switch_x2, switch_y2 = position["x2"], position["y2"]
+                cv2.rectangle(img, (switch_x1, switch_y1), (switch_x2, switch_y2), (0, 255, 0), 2)
+                cv2.putText(img, f'Switch: {switch_name}', (switch_x1, switch_y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
-                if switch_x1 <= touch_position[0] <= switch_x2 and switch_y1 <= touch_position[1] <= switch_y2:
-                    if not switch["published"]:
-                        category = switch["category"]
-                        if category == "elec":
-                            usage_topic = "usage/elec"
-                        elif category == "water":
-                            usage_topic = "usage/water"
-                        else:
-                            usage_topic = "usage/unknown"
+            if switch_touched:
+                responsible_name = associate_hand_to_nearest_face(touch_position, recognized_faces)
+                print(f"Switch touched by {responsible_name}")
+                cv2.putText(img, f"Switch touched by {responsible_name}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                for switch in first_frame_switch_data:
+                    switch_x1, switch_y1 = switch["position"]["x1"], switch["position"]["y1"]
+                    switch_x2, switch_y2 = switch["position"]["x2"], switch["position"]["y2"]
 
-                        message_payload = {
-                            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            "device": switch["switch_name"],
-                            "user": responsible_name,
-                            "category": category
-                        }
-                        message_json = json.dumps(message_payload)
-                        client.publish(usage_topic, message_json)
-                        print(f"Published to {usage_topic}: {message_json}")
+                    if switch_x1 <= touch_position[0] <= switch_x2 and switch_y1 <= touch_position[1] <= switch_y2:
+                        if not switch["published"]:
+                            category = switch["category"]
+                            if category == "elec":
+                                usage_topic = "usage/elec"
+                            elif category == "water":
+                                usage_topic = "usage/water"
+                            else:
+                                usage_topic = "usage/unknown"
 
-                        switch["published"] = True
-        else:
-            for switch in first_frame_switch_data:
-                switch["published"] = False
+                            message_payload = {
+                                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                "device": switch["switch_name"],
+                                "user": responsible_name,
+                                "category": category
+                            }
+                            message_json = json.dumps(message_payload)
+                            aws_client.publish(usage_topic, message_json)
+                            print(f"Published to {usage_topic}: {message_json}")
 
-        cv2.imshow('Video Stream', img)
-        cv2.waitKey(1)
+                            switch["published"] = True
+            else:
+                for switch in first_frame_switch_data:
+                    switch["published"] = False
+            cv2.imshow(f'Video Stream Frame', img)
+            cv2.waitKey(1)
+    else:
+        print(f"Frame {sequence_number} is outdated, skipping.")
 
+load_faces_from_dir()
 
-
-directory_path = "/home/hgq/Projects/mobile/face_data"
-load_known_faces_from_directory(directory_path)
 client = mqtt.Client()
 client.username_pw_set(username, password)
 client.connect(broker_address, port=1883)
 client.on_message = on_message
 client.subscribe(topic)
+
+aws_client = mqtt.Client()
+aws_client.username_pw_set(aws_username, aws_password)
+aws_client.connect(aws_broker_address, port=aws_port)
+
+aws_client.loop_start()
+
 client.loop_forever()
+
+

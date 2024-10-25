@@ -9,9 +9,9 @@ import mediapipe as mp
 from datetime import datetime
 import math
 
-broker_address = "10.210.65.16"
+broker_address = "192.168.50.227"
 port = 1883
-topic = "video/stream"
+topic = "usage/elec"
 username = "guanqiao"
 password = "77136658Rm."
 

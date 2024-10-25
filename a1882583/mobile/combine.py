@@ -8,7 +8,7 @@ from datetime import datetime
 import math
 import mediapipe as mp
 
-broker_address = "10.210.65.16"
+broker_address = "0.0.0.0"
 port = 1883
 topic = "video/stream"
 user_name = "guanqiao"
