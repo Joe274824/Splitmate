@@ -5,6 +5,7 @@ import 'add_property_screen.dart';
 import 'apply_property_screen.dart';
 import 'tenant_screen.dart';
 import 'register_screen.dart';
+import 'ble_scan_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   final _nameController = TextEditingController();
@@ -19,7 +20,7 @@ class LoginScreen extends StatelessWidget {
     print("Sending request to server: $requestBody");
 
     final response = await http.post(
-      Uri.parse('http://120.26.0.31:8080/api/login'),
+      Uri.parse('http://13.55.123.136:8080/api/login'),
       headers: <String, String>{
         'Content-Type': 'application/json',
         'accept': '*/*',
@@ -121,7 +122,7 @@ class LoginScreen extends StatelessWidget {
   // 发送忘记密码请求到服务器
   Future<void> _sendForgotPasswordRequest(String email, BuildContext context) async {
     final response = await http.post(
-      Uri.parse('http://120.26.0.31:8080/users/forgot-password?email=$email'),
+      Uri.parse('http://13.55.123.136:8080/users/forgot-password?email=$email'),
       headers: {'accept': '*/*'},
     );
 
@@ -170,14 +171,31 @@ class LoginScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),  // 添加注册按钮
+                  MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
               child: Text('Register'),
             ),
             TextButton(
-              onPressed: () => _forgotPassword(context),  // 忘记密码按钮
+              onPressed: () => _forgotPassword(context),
               child: Text('Forgot Password?'),
+            ),
+            SizedBox(height: 20),
+            // Add the underlined text for BLE Scan
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BLEScanScreen()), // Navigates to BLEScanScreen
+                );
+              },
+              child: Text(
+                'Use with no connection',
+                style: TextStyle(
+                  decoration: TextDecoration.underline, // Underline the text
+                  color: Colors.blue, // Color it like a link
+                ),
+              ),
             ),
           ],
         ),

@@ -3,12 +3,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'monthly_bills_screen.dart';
 import 'download_bill_screen.dart';
-import 'usage_history_screen.dart';
-import 'house_dashboard_screen.dart';
 import 'tenants_usage_screen.dart';
 import 'login_screen.dart';
 import 'package:intl/intl.dart';
-import 'ble_scan_screen.dart';
+import 'usage_history_screen.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:collection/collection.dart';
+
+import 'house_dashboard_screen_update.dart';
 
 class TenantScreen extends StatefulWidget {
   final bool isLandlord;
@@ -20,7 +23,28 @@ class TenantScreen extends StatefulWidget {
   _TenantScreenState createState() => _TenantScreenState();
 }
 
+
 class _TenantScreenState extends State<TenantScreen> {
+  // Define the _buildInfoCard method at the beginning of the class to ensure it's accessible throughout the class
+  Widget _buildInfoCard(String title, String value, IconData icon, Color color) {
+    return Card(
+      color: Colors.white,
+      elevation: 3,
+      margin: EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(
+          title,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          value,
+          style: TextStyle(fontSize: 16),
+        ),
+      ),
+    );
+  }
+
   String username = '';
   String userRole = '';
   bool isLoading = false;
@@ -35,7 +59,88 @@ class _TenantScreenState extends State<TenantScreen> {
   @override
   void initState() {
     super.initState();
+    onEnterTenantScreen(widget.token);
     _fetchData();
+  }
+
+  Future<void> _initializeDeviceInfoFile() async {
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    File deviceInfoFile = File('${appDocDir.path}/device_info.json');
+
+    if (!(await deviceInfoFile.exists())) {
+      await deviceInfoFile.create();
+      await deviceInfoFile.writeAsString(jsonEncode([])); // Initialize with an empty list
+    }
+  }
+  Future<void> _fetchAndUpdateDevices(String token) async {
+    try {
+      // Get all devices from the server
+      final response = await http.get(
+        Uri.parse('http://13.55.123.136:8080/devices'),
+        headers: {
+          'accept': '*/*',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        List<Map<String, dynamic>> serverDevices = List<Map<String, dynamic>>.from(jsonDecode(response.body));
+
+        // Read the local device info file
+        Directory appDocDir = await getApplicationDocumentsDirectory();
+        File deviceInfoFile = File('${appDocDir.path}/device_info.json');
+        String localContent = await deviceInfoFile.readAsString();
+        List<Map<String, dynamic>> localDevices = List<Map<String, dynamic>>.from(jsonDecode(localContent));
+
+        // Compare server devices with local devices
+        if (!_areDevicesEqual(serverDevices, localDevices)) {
+          // Update local file if devices are different
+          await deviceInfoFile.writeAsString(jsonEncode(serverDevices));
+          print('Local device info updated.');
+        } else {
+          print('No update needed for local device info.');
+        }
+      } else {
+        print('Failed to fetch devices from server');
+      }
+    } catch (e) {
+      print('Error occurred while fetching or updating devices: $e');
+    }
+  }
+
+  // Helper function to compare two lists of devices
+  bool _areDevicesEqual(List<Map<String, dynamic>> serverDevices, List<Map<String, dynamic>> localDevices) {
+    if (serverDevices.length != localDevices.length) {
+      return false;
+    }
+    for (int i = 0; i < serverDevices.length; i++) {
+      if (!const DeepCollectionEquality().equals(serverDevices[i], localDevices[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+  // Method to print the device info file content
+  Future<void> printDeviceInfoFile() async {
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      File deviceInfoFile = File('${appDocDir.path}/device_info.json');
+      if (await deviceInfoFile.exists()) {
+        String content = await deviceInfoFile.readAsString();
+        print('Device Info File Content:\n$content');
+      } else {
+        print('Device info file does not exist.');
+      }
+    } catch (e) {
+      print('Error occurred while reading device info file: $e');
+    }
+  }
+
+  // Method to be called when entering the tenant screen
+  Future<void> onEnterTenantScreen(String token) async {
+    await _initializeDeviceInfoFile();
+    await _fetchAndUpdateDevices(token);
+    await printDeviceInfoFile();
   }
 
   Future<void> _fetchData() async {
@@ -59,7 +164,7 @@ class _TenantScreenState extends State<TenantScreen> {
   // Fetch user details
   Future<void> _fetchUserDetails() async {
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/users/findUser'),
+      Uri.parse('http://13.55.123.136:8080/users/findUser'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -87,7 +192,7 @@ class _TenantScreenState extends State<TenantScreen> {
   Future<void> _fetchUsagePrices() async {
     final now = DateTime.now();
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/deviceUsages/userOneMonth?month=${now.month}&year=${now.year}'),
+      Uri.parse('http://13.55.123.136:8080/deviceUsages/userOneMonth?month=${now.month}&year=${now.year}'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -158,6 +263,22 @@ class _TenantScreenState extends State<TenantScreen> {
       ),
     );
   }
+  Future<String> getDeviceInfoContent() async {
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      File deviceInfoFile = File('${appDocDir.path}/device_info.json');
+      if (await deviceInfoFile.exists()) {
+        String content = await deviceInfoFile.readAsString();
+        return content;
+      } else {
+        print('Device info file does not exist.');
+        return 'Device info file does not exist.';
+      }
+    } catch (e) {
+      print('Error occurred while reading device info file: $e');
+      return 'Error occurred while reading device info file: $e';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -218,17 +339,6 @@ class _TenantScreenState extends State<TenantScreen> {
                       token: widget.token,
                     ),
                   ),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.bluetooth),
-              title: Text('BLE Devices'),  // New item for BLE scanning
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => BLEScanScreen(token: widget.token)),
                 );
               },
             ),
@@ -309,9 +419,7 @@ class _TenantScreenState extends State<TenantScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             Text(
               'Next Bill Date: ${DateFormat('yyyy-MM-dd').format(nextBillDate)}',
@@ -319,33 +427,50 @@ class _TenantScreenState extends State<TenantScreen> {
             ),
             SizedBox(height: 10),
             Text(
-              'Current Water Price: \$${waterUsage.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 16),
+              'Current Price:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            Text(
-              'Current Electricity Price: \$${electricityUsage.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 16),
+            SizedBox(height: 10),
+            _buildInfoCard(
+              'Current Water Price',
+              '\$${waterUsage.toStringAsFixed(2)}',
+              Icons.water,
+              Colors.blue,
             ),
-            Text(
-              'Current Gas Price: \$${gasUsage.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 16),
+            _buildInfoCard(
+              'Current Electricity Price',
+              '\$${electricityUsage.toStringAsFixed(2)}',
+              Icons.electric_bolt,
+              Colors.yellow,
             ),
-            SizedBox(height: 20),
+            _buildInfoCard(
+              'Current Gas Price',
+              '\$${gasUsage.toStringAsFixed(2)}',
+              Icons.fireplace,
+              Colors.orange,
+            ),
+            Divider(),
             Text(
               'Estimated Bill for this Cycle:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            Text(
-              'Water: \$${estimatedWater.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 16),
+            _buildInfoCard(
+              'Water (Estimated)',
+              '\$${estimatedWater.toStringAsFixed(2)}',
+              Icons.water_drop_outlined,
+              Colors.lightBlue,
             ),
-            Text(
-              'Electricity: \$${estimatedElectricity.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 16),
+            _buildInfoCard(
+              'Electricity (Estimated)',
+              '\$${estimatedElectricity.toStringAsFixed(2)}',
+              Icons.bolt,
+              Colors.amber,
             ),
-            Text(
-              'Gas: \$${estimatedGas.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 16),
+            _buildInfoCard(
+              'Gas (Estimated)',
+              '\$${estimatedGas.toStringAsFixed(2)}',
+              Icons.local_fire_department,
+              Colors.red,
             ),
           ],
         ),

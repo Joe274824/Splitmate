@@ -28,7 +28,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
   Future<void> _fetchUserDetails() async {
     final response = await http.get(
-      Uri.parse('http://120.26.0.31:8080/users/findUser'),
+      Uri.parse('http://13.55.123.136:8080/users/findUser'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': '*/*',
@@ -58,7 +58,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     print("Sending request to server: $requestBody");
 
     final response = await http.post(
-      Uri.parse('http://120.26.0.31:8080/api/house'),
+      Uri.parse('http://13.55.123.136:8080/api/house'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${widget.token}',

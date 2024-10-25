@@ -167,7 +167,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     print('Request body: ' + jsonEncode(requestBody));
     final response = await http.post(
-      Uri.parse('http://120.26.0.31:8080/users/create'),
+      Uri.parse('http://13.55.123.136:8080/users/create'),
       headers: <String, String>{
         'Content-Type': 'application/json',
         'accept': '*/*',
@@ -195,7 +195,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://120.26.0.31:8080/users/uploadPhotos'),
+      Uri.parse('http://13.55.123.136:8080/users/uploadPhotos'),
     );
     request.headers['accept'] = '*/*';
     request.headers['Content-Type'] = 'multipart/form-data';
