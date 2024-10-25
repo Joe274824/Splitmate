@@ -40,15 +40,23 @@ public class BillController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadBill(@RequestParam("file") MultipartFile file,
-                                             @RequestBody Bill bill) {
+                                             @RequestParam("userId") Long userId,
+                                             @RequestParam("houseId") Long houseId,
+                                             @RequestParam("billDate") String billDate,
+                                             @RequestParam("category") String category) {
         String filename = file.getOriginalFilename();
         if (!Objects.requireNonNull(filename).isEmpty() && !filename.substring(file.getOriginalFilename().lastIndexOf(".")).equalsIgnoreCase("pdf")) {
             ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Only allows upload pdf bills");
         }
         // 检查用户是否为主租户
-        if (billService.isMainTenant(bill.getUserId())) {
+        if (billService.isMainTenant(userId)) {
             try {
+                Bill bill = new Bill();
+                bill.setUserId(userId);
+                bill.setHouseId(houseId);
+                bill.setBillDate(billDate);
+                bill.setCategory(category);
                 billService.saveBill(file, bill);
                 return ResponseEntity.ok("Bill uploaded successfully");
             } catch (Exception e) {
