@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Entity
@@ -20,6 +21,7 @@ public class Bill {
     private String filePath;
     private Timestamp uploadTime;
     private String billDate;
+    private BigDecimal billPrice;
 
     public String getCategory() {
         return category;
@@ -85,5 +87,13 @@ public class Bill {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public BigDecimal getBillPrice() {
+        return billPrice;
+    }
+
+    public void setBillPrice(BigDecimal billPrice) {
+        this.billPrice = billPrice;
     }
 }

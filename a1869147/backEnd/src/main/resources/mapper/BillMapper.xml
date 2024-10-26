@@ -14,12 +14,13 @@
         <result property="uploadTime" column="upload_time"/>
         <result property="billDate" column="bill_date"/>
         <result property="category" column="category"/>
+        <result property="billPrice" column="bill_price"/>
     </resultMap>
 
     <!-- 插入账单 -->
     <insert id="insertBill" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO bills (user_id, house_id, file_name, file_path, upload_time, bill_date, category)
-        VALUES (#{userId}, #{houseId}, #{fileName}, #{filePath}, #{uploadTime}, #{billDate}, #{category})
+        INSERT INTO bills (user_id, house_id, file_name, file_path, upload_time, bill_date, category, bill_price)
+        VALUES (#{userId}, #{houseId}, #{fileName}, #{filePath}, #{uploadTime}, #{billDate}, #{category}, #{billPrice})
     </insert>
 
     <!-- 根据 ID 获取账单 -->
@@ -41,5 +42,19 @@
     <delete id="deleteBillById" parameterType="Long">
         DELETE FROM bills WHERE id = #{id}
     </delete>
+
+    <update id="updateBill" parameterType="SplitMate.domain.Bill">
+        UPDATE bills
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="houseId != null">house_id = #{houseId},</if>
+            <if test="billDate != null">bill_date = #{billDate},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="billPrice != null">bill_price = #{billPrice}</if>
+            <if test="fileName != null">file_name = #{fileName}</if>
+            <if test="filePath != null">file_path = #{filePath}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
 
 </mapper>

@@ -71,4 +71,16 @@ public class DeviceUsage {
     public void setEndTime(Timestamp endTime) {
         this.endTime = endTime;
     }
+
+    @Override
+    public String toString() {
+        return "DeviceUsage{" +
+                "id=" + id +
+                ", user=" + user +
+                ", device=" + device +
+                ", usageTime=" + usageTime +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                '}';
+    }
 }

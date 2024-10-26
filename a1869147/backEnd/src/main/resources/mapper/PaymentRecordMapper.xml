@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.PaymentRecordMapper">
+
+    <!-- 插入记录 -->
+    <insert id="insertPaymentRecord" parameterType="SplitMate.domain.PaymentRecord">
+        INSERT INTO payment_record (owner_id, house_id, user_id, bill_month, amount, category, is_paid, created_at, updated_at)
+        VALUES (#{ownerId}, #{houseId}, #{userId}, #{billMonth}, #{amount}, #{category}, #{isPaid}, NOW(), NOW())
+    </insert>
+
+    <!-- 根据ID查询记录 -->
+    <select id="getPaymentRecordById" parameterType="int" resultType="SplitMate.domain.PaymentRecord">
+        SELECT * FROM payment_record WHERE payment_id = #{paymentId}
+    </select>
+
+    <!-- 更新记录 -->
+    <update id="updatePaymentRecord" parameterType="SplitMate.domain.PaymentRecord">
+        UPDATE payment_record
+        SET owner_id = #{ownerId}, house_id = #{houseId}, user_id = #{userId},
+            bill_month = #{billMonth}, amount = #{amount}, category = #{category},
+            is_paid = #{isPaid}, updated_at = NOW()
+        WHERE payment_id = #{paymentId}
+    </update>
+
+    <!-- 删除记录 -->
+    <delete id="deletePaymentRecord" parameterType="int">
+        DELETE FROM payment_record WHERE payment_id = #{paymentId}
+    </delete>
+
+    <select id="getPaymentRecordByUserIdAndBillMouth" resultType="SplitMate.domain.PaymentRecord">
+        SELECT * FROM payment_record WHERE user_id = #{userId}
+        <if test="billMouth != null">
+            AND bill_month = #{billMouth}
+        </if>
+    </select>
+
+</mapper>

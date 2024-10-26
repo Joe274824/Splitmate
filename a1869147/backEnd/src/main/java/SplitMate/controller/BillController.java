@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -43,7 +44,8 @@ public class BillController {
                                              @RequestParam("userId") Long userId,
                                              @RequestParam("houseId") Long houseId,
                                              @RequestParam("billDate") String billDate,
-                                             @RequestParam("category") String category) {
+                                             @RequestParam("category") String category,
+                                             @RequestParam("billPrice") BigDecimal billPrice) {
         String filename = file.getOriginalFilename();
         if (!Objects.requireNonNull(filename).isEmpty() && !filename.substring(file.getOriginalFilename().lastIndexOf(".")).equalsIgnoreCase("pdf")) {
             ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -57,6 +59,7 @@ public class BillController {
                 bill.setHouseId(houseId);
                 bill.setBillDate(billDate);
                 bill.setCategory(category);
+                bill.setBillPrice(billPrice);
                 billService.saveBill(file, bill);
                 return ResponseEntity.ok("Bill uploaded successfully");
             } catch (Exception e) {
@@ -71,7 +74,7 @@ public class BillController {
 
     // 查询所有可下载的账单
     @GetMapping
-    public List<Bill> getAllBills(@RequestHeader("Authorization") @ApiParam(required = false)String token) {
+    public List<Bill> getAllBills(@RequestHeader("Authorization") @ApiParam(required = false) String token) {
         String jwtToken = token.substring(7);
         // 使用 JwtUtil 解析用户名
         String username = jwtUtil.extractUsername(jwtToken);
@@ -101,5 +104,34 @@ public class BillController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<String> updateBill(@RequestBody Bill bill) {
+        try {
+            billService.updateBill(bill);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed update bill, please try again.");
+        }
+        return ResponseEntity.ok("Successfully update bill");
+    }
+
+    @PostMapping("/createPaymentRecord")
+    public ResponseEntity<String> createPaymentRecord(@RequestParam("billId")Long billId,
+                                                      @RequestHeader("Authorization") @ApiParam(required = false)String token) {
+        String jwtToken = token.substring(7);
+        String username = jwtUtil.extractUsername(jwtToken);
+        User user = userService.getUserByUsername(username);
+        if (user.getUserType() != 1) {
+            ResponseEntity.status(HttpStatus.CONFLICT).body("Only Landlord can generate payment record");
+        }
+        Bill bill = billService.getBillById(billId);
+        List<HouseTenant> tenants = houseService.getHouseTenantByHouseId(bill.getHouseId().intValue());
+        try {
+            billService.generatePayment(bill, tenants);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("generate failed:" + e.getMessage());
+        }
+        return ResponseEntity.ok().body("generate successfully");
     }
 }

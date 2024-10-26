@@ -29,6 +29,7 @@
         <result property="endTime" column="end_time"/>
         <association property="device" javaType="SplitMate.domain.Device">
             <result property="name" column="device_name"/>
+            <result property="id" column="device_id"/>
             <result property="category" column="device_category"/>
         </association>
         <association property="user" javaType="SplitMate.domain.User" resultMap="UserResultMap"/>
@@ -96,7 +97,8 @@
             ud.*,
             u.username,
             d.name AS device_name,
-            d.category AS device_category
+            d.category AS device_category,
+            d.id AS device_id
         FROM
             user u
                 JOIN

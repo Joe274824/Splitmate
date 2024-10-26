@@ -17,4 +17,6 @@ public interface BillMapper {
     List<Bill> getAllBills(Long houseId);
 
     void deleteBillById(Long id);
+
+    void updateBill(Bill bill);
 }
