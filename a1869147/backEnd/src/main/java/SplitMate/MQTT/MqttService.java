@@ -8,10 +8,14 @@ import com.alibaba.fastjson.JSONObject;
 import org.eclipse.paho.client.mqttv3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -19,11 +23,14 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MqttService implements MqttCallback {
 
     private static final String BROKER_URL = "tcp://16.51.50.230:1883";
-    private static final String CLIENT_ID = "java_client";
+    private static final String CLIENT_ID = "java";
     private static final String TOPIC_USAGE = "usage/#";
     private static final String username = "guanqiao";
     private static final String password = "77136658Rm.";
     private final SensorDataService sensorDataService;
+
+    private MqttClient client;
+
     @Autowired
     public MqttService(SensorDataService sensorDataService) {
         this.sensorDataService = sensorDataService;
@@ -42,7 +49,7 @@ public class MqttService implements MqttCallback {
 
     private void connectAndSubscribe() {
         try {
-            MqttClient client = new MqttClient(BROKER_URL, CLIENT_ID);
+            client = new MqttClient(BROKER_URL, CLIENT_ID);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             options.setUserName(username);
@@ -98,6 +105,9 @@ public class MqttService implements MqttCallback {
             System.out.println("Unknown detective");
             return "no user detective";
         }
+        if (username.equals("guanqiao")) {
+            username = "admin";
+        }
         DeviceUsage deviceUsage = new DeviceUsage();
         Device device1 = deviceMapper.getDeviceByName(device);
         deviceUsage.setDevice(device1);
@@ -129,6 +139,34 @@ public class MqttService implements MqttCallback {
         sensorData.setData(payload);
         sensorDataService.saveSensorData(sensorData);
         return "save successful";
+    }
+
+    public void sendPhotoOverMqtt(Long deviceId, String name, MultipartFile photo, boolean isUserPhoto) {
+        try (InputStream inputStream = photo.getInputStream();
+             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, length);
+            }
+
+            String encodedPhoto = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+            String id_name = deviceId + "_" + name;
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("id_name_category", id_name);
+            jsonObject.put("photoData", encodedPhoto);
+
+            String topic = isUserPhoto ? "data/face" : "data/device";
+            MqttMessage message = new MqttMessage(jsonObject.toJSONString().getBytes());
+
+            client.publish(topic, message); // 发布构造的消息
+
+            System.out.println("照片数据已发送到 MQTT 代理以进行训练。");
+        } catch (Exception e) {
+            e.printStackTrace(); // 考虑改为日志记录
+        }
     }
 }
 

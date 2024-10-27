@@ -15,7 +15,8 @@ public class PaymentRecord {
     private Integer ownerId;
     private Integer houseId;
     private Integer userId;
-    private String billMonth;
+    private String billStartDate;
+    private String billEndDate;
     private BigDecimal amount;
     private String category;
     private Boolean isPaid;
@@ -54,12 +55,20 @@ public class PaymentRecord {
         this.userId = userId;
     }
 
-    public String getBillMonth() {
-        return billMonth;
+    public String getBillStartDate() {
+        return billStartDate;
     }
 
-    public void setBillMonth(String billMonth) {
-        this.billMonth = billMonth;
+    public void setBillStartDate(String billStartDate) {
+        this.billStartDate = billStartDate;
+    }
+
+    public String getBillEndDate() {
+        return billEndDate;
+    }
+
+    public void setBillEndDate(String billEndDate) {
+        this.billEndDate = billEndDate;
     }
 
     public BigDecimal getAmount() {

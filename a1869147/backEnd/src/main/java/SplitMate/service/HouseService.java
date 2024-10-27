@@ -9,7 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -100,27 +103,34 @@ public class HouseService {
         return houseMapper.selectHousesByLandLordId(id);
     }
 
-    public Resource downloadHousePhoto(int houseId) throws Exception {
-        // 根据房屋 ID 获取房屋信息
-        House house = houseMapper.selectHouseById(houseId);
-        if (house == null || house.getHouseImagePath() == null) {
-            throw new Exception ("House not found or no photo available");
+    public ResponseEntity<Resource> downloadHousePhoto(int houseId){
+        try {
+            // 根据房屋 ID 获取房屋信息
+            House house = houseMapper.selectHouseById(houseId);
+            if (house == null || house.getHouseImagePath() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            // 获取照片的对象名
+            String objectName = house.getHouseImagePath().substring(house.getHouseImagePath().indexOf("/") + 1);
+
+            // 获取文件的内容类型
+            MediaType mediaType = minioService.getMediaType(objectName);
+
+            // 从 MinIO 下载文件
+            InputStream photoStream = minioService.downloadFile("house-images", objectName);
+            if (photoStream == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            Resource resource = new InputStreamResource(photoStream);
+
+            return ResponseEntity.ok()
+                    .contentType(mediaType) // 根据实际内容类型设置
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"") // 设置Content-Disposition为inline
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-
-        // 获取照片的桶名和对象名
-        String bucketName = "house-images";
-        String objectName = house.getHouseImagePath().substring(house.getHouseImagePath().indexOf("/") + 1); // 从路径中提取对象名
-
-        // 从 MinIO 下载文件
-        InputStream photoStream = minioService.downloadFile(bucketName, objectName);
-        if (photoStream == null) {
-            throw new Exception ("Photo not found in MinIO");
-        }
-
-        // 获取文件的内容类型
-        MediaType mediaType = minioService.getMediaType(objectName);
-
-        // 将 InputStream 转换为 Resource 并返回
-        return new InputStreamResource(photoStream);
     }
 }

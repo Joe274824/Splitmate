@@ -15,6 +15,13 @@ public class RentalApplicationService {
     private RentalApplicationMapper rentalApplicationMapper;
 
     public boolean submitApplication(Long userId, Long houseId) {
+
+        RentalApplication rentalApplication = rentalApplicationMapper.getApplicationByUserAndHouse(userId, houseId);
+        if (rentalApplication != null) {
+            if (rentalApplication.getStatus() == 0) {
+                return false;
+            }
+        }
         // 创建申请记录
         RentalApplication application = new RentalApplication();
         application.setUserId(userId);

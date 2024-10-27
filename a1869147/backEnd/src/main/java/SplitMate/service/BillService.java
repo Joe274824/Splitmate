@@ -97,18 +97,15 @@ public class BillService {
 
     public void generatePayment(Bill bill, List<HouseTenant> tenants) {
         BigDecimal totalAmount = bill.getBillPrice();
-        System.out.println("totalAmount:" + totalAmount);
         HashMap<Integer, List<DeviceUsage>> record = new HashMap<>();
-        String billDate = bill.getBillDate();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/yyyy");
-        YearMonth yearMonth = YearMonth.parse(billDate, formatter);
-        LocalDate startDate = yearMonth.atDay(1);
-        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate startDate = LocalDate.parse(bill.getBillStartDate(), formatter);
+        LocalDate endDate = LocalDate.parse(bill.getBillEndDate(), formatter);
 
         for (HouseTenant tenant : tenants) {
             List<DeviceUsage> deviceUsageByMonth = deviceUsageService.getDeviceUsageByMonth((long) tenant.getUserId(), startDate, endDate);
-            System.out.println(deviceUsageByMonth.size());
             record.put(tenant.getUserId(), deviceUsageService.getDeviceUsageByMonth((long) tenant.getUserId(), startDate, endDate));
         }
 
@@ -124,12 +121,8 @@ public class BillService {
                 if (!deviceUsage.getDevice().getCategory().equals(bill.getCategory())) {
                     continue;
                 }
-                System.out.println(deviceUsage.toString());
                 Device device = deviceService.getDeviceById(deviceUsage.getDevice().getId());
-                System.out.println("power:" + device.getPower());
-                System.out.println("Time:" + deviceUsage.getUsageTime());
                 result1 += device.getPower() * deviceUsage.getUsageTime();
-                System.out.println(result1);
             }
             result.put(tenant.getUserId(), BigDecimal.valueOf(result1));
         }
@@ -141,16 +134,17 @@ public class BillService {
             BigDecimal ratio = totalUsage.compareTo(BigDecimal.ZERO) > 0
                     ? consumption.divide(totalUsage, 2, RoundingMode.HALF_UP)
                     : BigDecimal.ZERO;
-            System.out.println("id:" + id);
-            System.out.println("ratio:" + ratio);
             BigDecimal paymentAmount = ratio.multiply(totalAmount).setScale(2, RoundingMode.HALF_UP);
-
+            if (paymentAmount.compareTo(BigDecimal.ZERO) == 0) {
+                continue;
+            }
             PaymentRecord paymentRecord = new PaymentRecord();
             paymentRecord.setAmount(paymentAmount);
             paymentRecord.setOwnerId(bill.getUserId().intValue());
             paymentRecord.setHouseId(bill.getHouseId().intValue());
             paymentRecord.setUserId(id);
-            paymentRecord.setBillMonth(billDate);
+            paymentRecord.setBillStartDate(bill.getBillStartDate());
+            paymentRecord.setBillEndDate(bill.getBillEndDate());
             paymentRecord.setCategory(bill.getCategory());
             paymentRecord.setPaid(false);
 

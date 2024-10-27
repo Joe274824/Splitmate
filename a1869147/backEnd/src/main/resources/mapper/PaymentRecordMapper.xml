@@ -6,8 +6,8 @@
 
     <!-- 插入记录 -->
     <insert id="insertPaymentRecord" parameterType="SplitMate.domain.PaymentRecord">
-        INSERT INTO payment_record (owner_id, house_id, user_id, bill_month, amount, category, is_paid, created_at, updated_at)
-        VALUES (#{ownerId}, #{houseId}, #{userId}, #{billMonth}, #{amount}, #{category}, #{isPaid}, NOW(), NOW())
+        INSERT INTO payment_record (owner_id, house_id, user_id, bill_start_date, bill_end_date, amount, category, is_paid, created_at, updated_at)
+        VALUES (#{ownerId}, #{houseId}, #{userId}, #{billStartDate}, #{billEndDate}, #{amount}, #{category}, #{isPaid}, NOW(), NOW())
     </insert>
 
     <!-- 根据ID查询记录 -->
@@ -19,7 +19,7 @@
     <update id="updatePaymentRecord" parameterType="SplitMate.domain.PaymentRecord">
         UPDATE payment_record
         SET owner_id = #{ownerId}, house_id = #{houseId}, user_id = #{userId},
-            bill_month = #{billMonth}, amount = #{amount}, category = #{category},
+            amount = #{amount}, category = #{category},
             is_paid = #{isPaid}, updated_at = NOW()
         WHERE payment_id = #{paymentId}
     </update>
@@ -31,9 +31,11 @@
 
     <select id="getPaymentRecordByUserIdAndBillMouth" resultType="SplitMate.domain.PaymentRecord">
         SELECT * FROM payment_record WHERE user_id = #{userId}
-        <if test="billMouth != null">
-            AND bill_month = #{billMouth}
-        </if>
     </select>
+
+    <select id="getPaymentRecordByHouseId" resultType="SplitMate.domain.PaymentRecord">
+        SELECT * FROM payment_record WHERE house_id = #{houseId}
+    </select>
+
 
 </mapper>

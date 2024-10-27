@@ -19,5 +19,7 @@ public interface PaymentRecordMapper {
 
     void deletePaymentRecord(int paymentId);
 
-    List<PaymentRecord> getPaymentRecordByUserIdAndBillMouth(Integer userId, String BillMouth);
+    List<PaymentRecord> getPaymentRecordByUserIdAndBillMouth(Integer userId);
+
+    List<PaymentRecord> getPaymentRecordByHouseId(Integer houseId);
 }

@@ -38,6 +38,7 @@ public class RentalApplicationController {
 
     @PostMapping("/submit")
     public ResponseEntity<String> submitApplication(@RequestParam Long userId, @RequestParam Long houseId) {
+
         boolean success = rentalApplicationService.submitApplication(userId, houseId);
         if (success) {
             return ResponseEntity.ok("Application submit successful");

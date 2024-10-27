@@ -10,7 +10,9 @@ import SplitMate.service.UserService;
 import SplitMate.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -130,14 +132,9 @@ public class HouseController {
     }
 
 
-    @GetMapping("/photo/{houseId}")
+    @GetMapping(value = "/photo/{houseId}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<Resource> downloadHousePhoto(@PathVariable int houseId) {
-        try {
-            Resource photo = houseService.downloadHousePhoto(houseId);
-            return ResponseEntity.ok(photo);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        return houseService.downloadHousePhoto(houseId);
     }
 }
 

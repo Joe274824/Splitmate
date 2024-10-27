@@ -3,6 +3,7 @@ package SplitMate.controller;
 import SplitMate.domain.PaymentRecord;
 import SplitMate.service.PaymentRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,9 +23,8 @@ public class PaymentRecordController {
 //    }
 
     @GetMapping
-    public List<PaymentRecord> getPaymentRecords(@RequestParam Integer userId,
-                                                 @RequestParam(required = false) String billMonth) {
-        return paymentRecordService.getPaymentRecordByUserIdAndBillMouth(userId, billMonth);
+    public List<PaymentRecord> getPaymentRecords(@RequestParam Integer userId) {
+        return paymentRecordService.getPaymentRecordByUserIdAndBillMouth(userId);
     }
 
     @GetMapping("/{id}")
@@ -43,5 +43,10 @@ public class PaymentRecordController {
     public String deletePaymentRecord(@PathVariable("id") int paymentId) {
         paymentRecordService.deletePaymentRecord(paymentId);
         return "Payment record deleted successfully";
+    }
+
+    @PostMapping("/houseId")
+    public List<PaymentRecord> getPaymentRecordByHouseId(@RequestParam Integer houseId) {
+        return paymentRecordService.getPaymentRecordByHouseId(houseId);
     }
 }

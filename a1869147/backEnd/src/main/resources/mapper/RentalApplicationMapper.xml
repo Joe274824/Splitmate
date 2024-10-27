@@ -25,4 +25,9 @@
         SELECT * FROM rental_application WHERE status = 0 and house_id = #{id}
     </select>
 
+    <select id="getApplicationByUserAndHouse" resultType="SplitMate.domain.RentalApplication">
+        SELECT * FROM rental_application WHERE user_id = #{userId} AND house_id = #{houseId}
+    </select>
+
+
 </mapper>

@@ -21,4 +21,6 @@ public interface RentalApplicationMapper {
 
     // 获取待审批的申请
     List<RentalApplication> getPendingApplications(Long id);
+
+    RentalApplication getApplicationByUserAndHouse(Long userId, Long houseId);
 }

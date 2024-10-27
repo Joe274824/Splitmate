@@ -20,7 +20,8 @@ public class Bill {
     private String fileName;
     private String filePath;
     private Timestamp uploadTime;
-    private String billDate;
+    private String billStartDate;
+    private String billEndDate;
     private BigDecimal billPrice;
 
     public String getCategory() {
@@ -31,12 +32,20 @@ public class Bill {
         this.category = category;
     }
 
-    public String getBillDate() {
-        return billDate;
+    public String getBillStartDate() {
+        return billStartDate;
     }
 
-    public void setBillDate(String billDate) {
-        this.billDate = billDate;
+    public void setBillStartDate(String billStartDate) {
+        this.billStartDate = billStartDate;
+    }
+
+    public String getBillEndDate() {
+        return billEndDate;
+    }
+
+    public void setBillEndDate(String billEndDate) {
+        this.billEndDate = billEndDate;
     }
 
     public Timestamp getUploadTime() {

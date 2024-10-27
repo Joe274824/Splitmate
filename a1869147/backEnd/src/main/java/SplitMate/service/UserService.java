@@ -1,5 +1,6 @@
 package SplitMate.service;
 
+import SplitMate.MQTT.MqttService;
 import SplitMate.domain.User;
 import SplitMate.mapper.UserMapper;
 import SplitMate.util.JwtUtil;
@@ -32,6 +33,8 @@ public class UserService {
 
     @Autowired
     private MinioService minioService;
+    @Autowired
+    private MqttService mqttService;
 
     public List<User> getAllUsers() {
         return userMapper.getAllUsers();
@@ -81,6 +84,8 @@ public class UserService {
             // 上传到 Minio
             try {
                 minioService.uploadFile(bucketName, fileName, photo.getInputStream(), contentType, photo.getSize());
+                mqttService.sendPhotoOverMqtt(userId, userMapper.getUserById(userId).getUsername() + "_"+ i, photo, true);
+
             } catch (Exception e) {
                 throw new IOException("Failed to upload photo: " + e.getMessage(), e);
             }
@@ -116,7 +121,7 @@ public class UserService {
         if (user == null) {
             throw new IllegalArgumentException("User not found.");
         }
-
+        System.out.println(user.getUsername());
         // 加密新密码
         user.setPassword(passwordEncoder.encode(newPassword));
         userMapper.updateUser(user);

@@ -43,7 +43,8 @@ public class BillController {
     public ResponseEntity<String> uploadBill(@RequestParam("file") MultipartFile file,
                                              @RequestParam("userId") Long userId,
                                              @RequestParam("houseId") Long houseId,
-                                             @RequestParam("billDate") String billDate,
+                                             @RequestParam("billStartDate") String billStartDate,
+                                             @RequestParam("billEndDate") String billEndDate,
                                              @RequestParam("category") String category,
                                              @RequestParam("billPrice") BigDecimal billPrice) {
         String filename = file.getOriginalFilename();
@@ -57,10 +58,17 @@ public class BillController {
                 Bill bill = new Bill();
                 bill.setUserId(userId);
                 bill.setHouseId(houseId);
-                bill.setBillDate(billDate);
+                bill.setBillStartDate(billStartDate);
+                bill.setBillEndDate(billEndDate);
                 bill.setCategory(category);
                 bill.setBillPrice(billPrice);
                 billService.saveBill(file, bill);
+                List<HouseTenant> tenants = houseService.getHouseTenantByHouseId(bill.getHouseId().intValue());
+                try {
+                    billService.generatePayment(bill, tenants);
+                } catch (Exception e) {
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body("generate failed:" + e.getMessage());
+                }
                 return ResponseEntity.ok("Bill uploaded successfully");
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -116,22 +124,22 @@ public class BillController {
         return ResponseEntity.ok("Successfully update bill");
     }
 
-    @PostMapping("/createPaymentRecord")
-    public ResponseEntity<String> createPaymentRecord(@RequestParam("billId")Long billId,
-                                                      @RequestHeader("Authorization") @ApiParam(required = false)String token) {
-        String jwtToken = token.substring(7);
-        String username = jwtUtil.extractUsername(jwtToken);
-        User user = userService.getUserByUsername(username);
-        if (user.getUserType() != 1) {
-            ResponseEntity.status(HttpStatus.CONFLICT).body("Only Landlord can generate payment record");
-        }
-        Bill bill = billService.getBillById(billId);
-        List<HouseTenant> tenants = houseService.getHouseTenantByHouseId(bill.getHouseId().intValue());
-        try {
-            billService.generatePayment(bill, tenants);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("generate failed:" + e.getMessage());
-        }
-        return ResponseEntity.ok().body("generate successfully");
-    }
+//    @PostMapping("/createPaymentRecord")
+//    public ResponseEntity<String> createPaymentRecord(@RequestParam("billId")Long billId,
+//                                                      @RequestHeader("Authorization") @ApiParam(required = false)String token) {
+//        String jwtToken = token.substring(7);
+//        String username = jwtUtil.extractUsername(jwtToken);
+//        User user = userService.getUserByUsername(username);
+//        if (user.getUserType() != 1) {
+//            ResponseEntity.status(HttpStatus.CONFLICT).body("Only Landlord can generate payment record");
+//        }
+//        Bill bill = billService.getBillById(billId);
+//        List<HouseTenant> tenants = houseService.getHouseTenantByHouseId(bill.getHouseId().intValue());
+//        try {
+//            billService.generatePayment(bill, tenants);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.CONFLICT).body("generate failed:" + e.getMessage());
+//        }
+//        return ResponseEntity.ok().body("generate successfully");
+//    }
 }

@@ -30,8 +30,11 @@ public class PaymentRecordService {
         paymentRecordMapper.deletePaymentRecord(paymentId);
     }
 
-    public List<PaymentRecord> getPaymentRecordByUserIdAndBillMouth(Integer userId, String billMonth) {
-        return paymentRecordMapper.getPaymentRecordByUserIdAndBillMouth(userId, billMonth);
+    public List<PaymentRecord> getPaymentRecordByUserIdAndBillMouth(Integer userId) {
+        return paymentRecordMapper.getPaymentRecordByUserIdAndBillMouth(userId);
     }
 
+    public List<PaymentRecord> getPaymentRecordByHouseId(Integer houseId) {
+        return paymentRecordMapper.getPaymentRecordByHouseId(houseId);
+    }
 }

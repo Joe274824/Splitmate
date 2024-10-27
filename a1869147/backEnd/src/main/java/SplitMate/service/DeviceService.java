@@ -1,5 +1,6 @@
 package SplitMate.service;
 
+import SplitMate.MQTT.MqttService;
 import SplitMate.domain.Device;
 import SplitMate.domain.DeviceStatus;
 import SplitMate.mapper.DeviceMapper;
@@ -35,6 +36,8 @@ public class DeviceService {
     private MinioService minioService;
 
     private static final String BUCKET_NAME = "device-images";
+    @Autowired
+    private MqttService mqttService;
 
     public List<Device> getAllDevices(Long houseId) {
         return deviceMapper.getAllDevices(houseId);
@@ -71,13 +74,14 @@ public class DeviceService {
         String fileName = "device_" + deviceId + (photo.getOriginalFilename());
         try (InputStream inputStream = photo.getInputStream()) {
             minioService.uploadFile(BUCKET_NAME, fileName, inputStream, photo.getContentType(), photo.getSize());
+            mqttService.sendPhotoOverMqtt(deviceId, deviceMapper.getDeviceById(deviceId).getName()+"_"+deviceMapper.getDeviceById(deviceId).getCategory(), photo, false);
         } catch (Exception e) {
             throw new IOException("File upload failed: " + e.getMessage(), e);
         }
 
         Device device = new Device();
         device.setId(deviceId);
-        device.setImagePath("minio_bucket:" + BUCKET_NAME + "/" + fileName); // 更新为MinIO的URL
+        device.setImagePath("minio_bucket:" + BUCKET_NAME + "/" + fileName);
         deviceMapper.updateDevice(device);
     }
 

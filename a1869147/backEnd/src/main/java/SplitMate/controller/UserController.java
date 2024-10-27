@@ -157,6 +157,7 @@ public class UserController {
         }
 
         try {
+            System.out.println(newPassword);
             userService.resetPassword(token, newPassword); // 实现密码重置
             model.addAttribute("message", "Password reset successfully. You can close this page and log in from the app.");
             return "reset-password";
