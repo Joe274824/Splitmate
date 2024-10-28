@@ -19,6 +19,8 @@ import java.util.Base64;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.sun.corba.se.impl.util.Utility.printStackTrace;
+
 @Component
 public class MqttService implements MqttCallback {
 
@@ -74,7 +76,7 @@ public class MqttService implements MqttCallback {
     }
 
     @Override
-    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+    public void messageArrived(String topic, MqttMessage mqttMessage) {
         String payload = new String(mqttMessage.getPayload());
         System.out.println("Received message: " + payload);
         handleMessage(payload);  // process massage
@@ -161,11 +163,11 @@ public class MqttService implements MqttCallback {
             String topic = isUserPhoto ? "data/face" : "data/device";
             MqttMessage message = new MqttMessage(jsonObject.toJSONString().getBytes());
 
-            client.publish(topic, message); // 发布构造的消息
+            client.publish(topic, message);
 
-            System.out.println("照片数据已发送到 MQTT 代理以进行训练。");
+            System.out.println("send photo to MQTT 代理以进行训练。");
         } catch (Exception e) {
-            e.printStackTrace(); // 考虑改为日志记录
+            printStackTrace();
         }
     }
 }

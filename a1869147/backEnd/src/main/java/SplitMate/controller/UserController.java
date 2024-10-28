@@ -152,16 +152,21 @@ public class UserController {
                                 Model model) {
 
         if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("status", "error");
             model.addAttribute("message", "Passwords do not match.");
+
             return "reset-password";
         }
 
         try {
             System.out.println(newPassword);
             userService.resetPassword(token, newPassword); // 实现密码重置
+            model.addAttribute("status", "success");
             model.addAttribute("message", "Password reset successfully. You can close this page and log in from the app.");
+
             return "reset-password";
         } catch (Exception e) {
+            model.addAttribute("status", "error");
             model.addAttribute("message", "Failed to reset password: " + e.getMessage());
             return "reset-password";
         }

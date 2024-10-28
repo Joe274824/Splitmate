@@ -68,7 +68,7 @@ public class HouseController {
         houseService.deleteHouse(houseId);
     }
 
-    @GetMapping("/{houseId}")
+    @GetMapping("/getHouse/{houseId}")
     public House getHouseById(@PathVariable int houseId) {
         return houseService.getHouseById(houseId);
     }

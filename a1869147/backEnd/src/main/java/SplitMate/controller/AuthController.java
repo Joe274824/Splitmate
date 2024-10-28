@@ -1,5 +1,6 @@
 package SplitMate.controller;
 
+import SplitMate.domain.House;
 import SplitMate.domain.HouseTenant;
 import SplitMate.domain.User;
 import SplitMate.service.HouseService;
@@ -17,9 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -50,11 +49,24 @@ public class AuthController {
             UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
             String jwt = jwtUtil.generateToken(userDetails.getUsername());
             User user = userService.getUserByUsername(userDetails.getUsername());
-            HouseTenant house = houseService.getHouseIdByTenantId(user.getId().intValue());
+            List<Integer> house = new ArrayList<>();
+            if (user.getUserType() == 1) {
+                List<House> houses = houseService.getHouseIdByLandlordId(user.getId());
+                if (houses != null) {
+                    houses.forEach(h -> {
+                        house.add(h.getHouseId());
+                    });
+                }
+            } else {
+                HouseTenant houseTenant = houseService.getHouseIdByTenantId(user.getId().intValue());
+                if (houseTenant != null) {
+                    house.add(houseTenant.getHouseId());
+                }
+            }
             Map<String, String> response = new HashMap<>();
             response.put("token", jwt);
             response.put("usertype", user.getUserType() + "");
-            response.put("houseId", house == null ? "null" : house.getId() + "");
+            response.put("houseId", house.isEmpty() ? "null" : house + "");
             if (!Objects.equals(user.getUserPhoneId(), authenticationRequest.getUserPhoneID())) {
                 response.put("userPhoneIdCheck", "false");
             } else {

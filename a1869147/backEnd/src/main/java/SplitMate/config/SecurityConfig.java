@@ -43,7 +43,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/webjars/**",
                         "/users/forgot-password",
                         "/users/reset-password",
-                        "/users/reset-password/**").permitAll()
+                        "/users/reset-password/**",
+                        "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
