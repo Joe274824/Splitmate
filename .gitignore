@@ -13,3 +13,5 @@ mobile-app/.dart_tool/
 # OS
 .DS_Store
 Thumbs.db
+
+java*-tcp*/
