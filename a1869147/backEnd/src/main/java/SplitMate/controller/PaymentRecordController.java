@@ -1,11 +1,15 @@
 package SplitMate.controller;
 
 import SplitMate.domain.PaymentRecord;
+import SplitMate.domain.User;
 import SplitMate.service.PaymentRecordService;
+import SplitMate.service.UserService;
+import SplitMate.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +19,10 @@ public class PaymentRecordController {
 
     @Autowired
     private PaymentRecordService paymentRecordService;
+    @Autowired
+    private JwtUtil jwtUtil;
+    @Autowired
+    private UserService userService;
 
 //    @PostMapping
 //    public String addPaymentRecord(@RequestBody PaymentRecord paymentRecord) {

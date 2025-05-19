@@ -136,5 +136,27 @@ public class HouseController {
     public ResponseEntity<Resource> downloadHousePhoto(@PathVariable int houseId) {
         return houseService.downloadHousePhoto(houseId);
     }
+
+    @PostMapping("/getHouseByUserId")
+    public ResponseEntity<?> getHouseByUserId(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        String username = jwtUtil.extractUsername(token.substring(7));
+        User user = userService.getUserByUsername(username);
+        List<Integer> house = new ArrayList<>();
+        if (user.getUserType() == 1) {
+            List<House> houses = houseService.getHouseIdByLandlordId(user.getId());
+            if (houses != null) {
+                houses.forEach(h -> {
+                    house.add(h.getHouseId());
+                });
+            }
+        } else {
+            HouseTenant houseTenant = houseService.getHouseIdByTenantId(user.getId().intValue());
+            if (houseTenant != null) {
+                house.add(houseTenant.getHouseId());
+            }
+        }
+        return ResponseEntity.ok(house);
+    }
 }
 

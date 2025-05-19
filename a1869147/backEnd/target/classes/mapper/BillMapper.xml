@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.BillMapper">
+
+    <!-- 映射 Bill 实体类的所有字段 -->
+    <resultMap id="BillResultMap" type="SplitMate.domain.Bill">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="houseId" column="house_id"/>
+        <result property="fileName" column="file_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="uploadTime" column="upload_time"/>
+        <result property="billStartDate" column="bill_start_date"/>
+        <result property="billEndDate" column="bill_end_date"/>
+        <result property="category" column="category"/>
+        <result property="billPrice" column="bill_price"/>
+    </resultMap>
+
+    <!-- 插入账单 -->
+    <insert id="insertBill" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO bills (user_id, house_id, file_name, file_path, upload_time, bill_start_date, bill_end_date, category, bill_price)
+        VALUES (#{userId}, #{houseId}, #{fileName}, #{filePath}, #{uploadTime}, #{billStartDate}, #{billEndDate}, #{category}, #{billPrice})
+    </insert>
+
+    <!-- 根据 ID 获取账单 -->
+    <select id="getBillById" parameterType="Long" resultMap="BillResultMap">
+        SELECT * FROM bills WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户 ID 获取账单 -->
+    <select id="getBillsByUserId" parameterType="Long" resultMap="BillResultMap">
+        SELECT * FROM bills WHERE user_id = #{userId}
+    </select>
+
+    <!-- 获取所有账单 -->
+    <select id="getAllBills" parameterType="Long" resultMap="BillResultMap">
+        SELECT * FROM bills WHERE house_id = #{hosueId}
+    </select>
+
+    <!-- 根据 ID 删除账单 -->
+    <delete id="deleteBillById" parameterType="Long">
+        DELETE FROM bills WHERE id = #{id}
+    </delete>
+
+    <update id="updateBill" parameterType="SplitMate.domain.Bill">
+        UPDATE bills
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="houseId != null">house_id = #{houseId},</if>
+            <if test="billStartDate != null">bill_start_date = #{billStartDate},</if>
+            <if test="billEndDate != null">bill_end_date = #{billEndDate},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="billPrice != null">bill_price = #{billPrice}</if>
+            <if test="fileName != null">file_name = #{fileName}</if>
+            <if test="filePath != null">file_path = #{filePath}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

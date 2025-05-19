@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.HouseTenantMapper">
+
+    <!-- SQL 语句用于查询房屋租户 -->
+    <select id="getTenantsByHouseId" resultType="SplitMate.domain.HouseTenant">
+        SELECT * FROM house_tenant WHERE house_id = #{houseId}
+    </select>
+
+
+    <select id="getHouseIdByTenantId" resultType="SplitMate.domain.HouseTenant">
+        SELECT * FROM house_tenant WHERE user_id = #{tenantId}
+    </select>
+
+
+    <insert id="insertHouseTenant">
+        INSERT INTO house_tenant (user_id, house_id) VALUES (#{userId}, #{houseId});
+    </insert>
+</mapper>

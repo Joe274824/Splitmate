@@ -165,11 +165,15 @@ public class DeviceUsageService {
             LocalDateTime startTime1 = startTime.toLocalDateTime();
             LocalDateTime endTime = LocalDateTime.now();
             deviceUsageByDeviceId.setEndTime(Timestamp.valueOf(endTime));
-            long usageTime = Duration.between(startTime1, endTime).getSeconds() / 60;
+            long usageTime = Math.max(Duration.between(startTime1, endTime).getSeconds() / 60, 1);
             deviceUsageByDeviceId.setUsageTime(Math.toIntExact(usageTime));
             deviceUsageMapper.updateDeviceUsage(deviceUsageByDeviceId);
             System.out.println("save successful！");
         }
         return "save successful";
+    }
+
+    public DeviceUsage getFirstUsageByHouseId(int houseId) {
+        return deviceUsageMapper.getFirstUsageByHouseId(houseId);
     }
 }

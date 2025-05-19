@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,6 +97,7 @@ public class DeviceUsageController {
     @GetMapping("/AllUsageForMT")
     public ResponseEntity<?> getAllDeviceUsageForMT(@RequestParam("year") int year,
                                                     @RequestParam("month") int month,
+                                                    @RequestParam("houseId") int houseId,
                                                     HttpServletRequest request) {
         String token = request.getHeader("Authorization");
         String jwtToken = token.substring(7);
@@ -104,7 +106,7 @@ public class DeviceUsageController {
         if (user.getUserType() != 1) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is not permitted");
         }
-        List<HouseTenant> tenants = houseService.getHouseTenantByHouseId(houseService.getHouseIdByTenantId(user.getId().intValue()).getUserId());
+        List<HouseTenant> tenants = houseService.getHouseTenantByHouseId(houseId);
         List<DeviceUsage> AllUsage = new ArrayList<>();
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startOfMonth = yearMonth.atDay(1);
@@ -128,6 +130,23 @@ public class DeviceUsageController {
         }
     }
 
+    @GetMapping("/getFirstUsageByhouseId")
+    public ResponseEntity<DeviceUsage> getFirstUsageByHouseId(@RequestParam int houseId) {
+        DeviceUsage usage = deviceUsageService.getFirstUsageByHouseId(houseId);
+        return ResponseEntity.ok(usage);
+    }
 
+//    @GetMapping("/currentPrice")
+//    public ResponseEntity<?> currentPrice(HttpServletRequest request) {
+//        String token = request.getHeader("Authorization");
+//        String jwtToken = token.substring(7);
+//        String username = jwtUtil.extractUsername(jwtToken);
+//        User user = userService.getUserByUsername(username);
+//        LocalDate today = LocalDate.now();
+//        LocalDate firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth());
+//        LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
+//        List<DeviceUsage> deviceUsageByMonth = deviceUsageService.getDeviceUsageByMonth(user.getId(), firstDayOfMonth, lastDayOfMonth);
+//
+//    }
 
 }

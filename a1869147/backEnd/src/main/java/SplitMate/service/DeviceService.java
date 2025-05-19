@@ -39,8 +39,8 @@ public class DeviceService {
     @Autowired
     private MqttService mqttService;
 
-    public List<Device> getAllDevices(Long houseId) {
-        return deviceMapper.getAllDevices(houseId);
+    public List<Device> getAllDevices() {
+        return deviceMapper.getAllDevices();
     }
 
     public Device getDeviceById(Long id) {

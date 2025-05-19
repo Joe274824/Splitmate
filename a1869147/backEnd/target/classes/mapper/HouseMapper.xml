@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SplitMate.mapper.HouseMapper">
+
+    <insert id="insertHouse" parameterType="SplitMate.domain.House" useGeneratedKeys="true" keyProperty="houseId">
+        INSERT INTO house_info (house_status, landlord_id, landlord_name, address, name, house_image_path)
+        VALUES (#{houseStatus}, #{landlordId}, #{landlordName}, #{Address}, #{Name}, #{houseImagePath});
+    </insert>
+
+    <update id="updateHouse" parameterType="SplitMate.domain.House">
+        UPDATE house_info
+        <set>
+            <if test="houseStatus != null">house_status = #{houseStatus},</if>
+            <if test="landlordId != null">landlord_id = #{landlordId},</if>
+            <if test="landlordName != null">landlord_name = #{landlordName},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="houseImagePath != null">house_image_path = #{houseImagePath}</if>
+        </set>
+        WHERE house_id = #{houseId}
+    </update>
+
+    <delete id="deleteHouse" parameterType="int">
+        DELETE FROM house_info WHERE house_id = #{houseId};
+    </delete>
+
+    <select id="selectHouseById" parameterType="int" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE house_id = #{houseId};
+    </select>
+
+    <select id="selectAllHouses" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE house_status = 1;
+    </select>
+
+    <select id="selectHousesByLandLordName" parameterType="String" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE landlord_name LIKE CONCAT('%', #{name}, '%') and house_status = 1;
+    </select>
+
+    <select id="selectHousesByStatus" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE house_status = #{status};
+    </select>
+
+    <select id="selectHousesByLandLordId" resultType="SplitMate.domain.House">
+        SELECT * FROM house_info WHERE landlord_id = #{id};
+    </select>
+</mapper>

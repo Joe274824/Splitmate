@@ -62,6 +62,7 @@ public class MqttService implements MqttCallback {
             client.subscribe(TOPIC_USAGE, (topic, message) -> {
                 String payload = new String(message.getPayload());
                 System.out.println("Received message: " + payload);
+                handleMessage(payload);
             });
 
         } catch (MqttException e) {
@@ -78,7 +79,7 @@ public class MqttService implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) {
         String payload = new String(mqttMessage.getPayload());
-        System.out.println("Received message: " + payload);
+        System.out.println("Received message1: " + payload);
         handleMessage(payload);  // process massage
     }
 
@@ -130,9 +131,9 @@ public class MqttService implements MqttCallback {
             DeviceUsage deviceUsageByDeviceId = deviceUsageMapper.getDeviceUsageByDeviceId(device1.getId());
             Timestamp startTime = deviceUsageByDeviceId.getStartTime();
             LocalDateTime startTime1 = startTime.toLocalDateTime();
-            LocalDateTime endTime = LocalDateTime.now();
+            LocalDateTime endTime = (LocalDateTime) time;
             deviceUsageByDeviceId.setEndTime(Timestamp.valueOf(endTime));
-            long usageTime = Duration.between(startTime1, endTime).getSeconds() / 60;
+            long usageTime = Math.max(Duration.between(startTime1, endTime).getSeconds() / 60, 1);
             deviceUsageByDeviceId.setUsageTime(Math.toIntExact(usageTime));
             deviceUsageMapper.updateDeviceUsage(deviceUsageByDeviceId);
             System.out.println("save successful！");
@@ -165,7 +166,7 @@ public class MqttService implements MqttCallback {
 
             client.publish(topic, message);
 
-            System.out.println("send photo to MQTT 代理以进行训练。");
+            System.out.println("send photo to MQTT for training。");
         } catch (Exception e) {
             printStackTrace();
         }

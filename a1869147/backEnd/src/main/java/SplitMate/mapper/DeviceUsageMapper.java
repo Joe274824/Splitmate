@@ -43,7 +43,11 @@ public interface DeviceUsageMapper {
 
     List<DeviceUsage> findUpdatedDataSince(String timestamp);
 
-    List<DeviceUsage> getDeviceUsageByMonth(Long userId, LocalDate startOfMonth, LocalDate endOfMonth);
+    List<DeviceUsage> getDeviceUsageByMonth(@Param("userId") Long userId,
+                                            @Param("startOfMonth") LocalDate startOfMonth,
+                                            @Param("endOfMonth") LocalDate endOfMonth);
 
     DeviceUsage getDeviceUsageByDeviceId(Long id);
+
+    DeviceUsage getFirstUsageByHouseId(int houseId);
 }

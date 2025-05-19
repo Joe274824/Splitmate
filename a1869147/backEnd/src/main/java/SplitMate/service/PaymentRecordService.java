@@ -37,4 +37,8 @@ public class PaymentRecordService {
     public List<PaymentRecord> getPaymentRecordByHouseId(Integer houseId) {
         return paymentRecordMapper.getPaymentRecordByHouseId(houseId);
     }
+
+    public List<PaymentRecord> getPaymentHistory(Integer id) {
+        return paymentRecordMapper.getPaymentHistory(id);
+    }
 }

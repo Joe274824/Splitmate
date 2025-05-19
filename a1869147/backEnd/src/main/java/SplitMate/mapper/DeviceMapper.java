@@ -11,7 +11,7 @@ public interface DeviceMapper {
      * Retrieves all devices.
      * @return a list of all devices.
      */
-    List<Device> getAllDevices(Long houseId);
+    List<Device> getAllDevices();
 
     /**
      * Retrieves a device by its ID.

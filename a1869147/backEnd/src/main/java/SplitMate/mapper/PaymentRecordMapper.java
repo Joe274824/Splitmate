@@ -22,4 +22,6 @@ public interface PaymentRecordMapper {
     List<PaymentRecord> getPaymentRecordByUserIdAndBillMouth(Integer userId);
 
     List<PaymentRecord> getPaymentRecordByHouseId(Integer houseId);
+
+    List<PaymentRecord> getPaymentHistory(Integer id);
 }

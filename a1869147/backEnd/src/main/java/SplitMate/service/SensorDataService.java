@@ -14,11 +14,7 @@ public class SensorDataService {
     private SensorDataMapper sensorDataMapper;
 
     public void saveSensorData(SensorData sensorData) {
-        if (sensorData.getId() == null) {
-            sensorDataMapper.insertSensorData(sensorData);
-        } else {
-            sensorDataMapper.updateSensorData(sensorData);
-        }
+        sensorDataMapper.insertSensorData(sensorData);
     }
 
     public void deleteSensorData(Long id) {
