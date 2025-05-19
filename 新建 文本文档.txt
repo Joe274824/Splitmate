@@ -1,0 +1,15 @@
+# IDE
+.idea/
+*.iml
+
+# Java backend
+backend/target/
+backend/*.log
+
+# Flutter app
+mobile-app/build/
+mobile-app/.dart_tool/
+
+# OS
+.DS_Store
+Thumbs.db
